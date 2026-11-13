@@ -6,6 +6,7 @@ confirmed. There is no blanket verified=true.
 """
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 
 import shapely
@@ -229,7 +230,7 @@ def operation_readback_invariants(ctx):
 
     def check(label, passed, method="readback_exact_structure"):
         checks.append({"id": label, "passed": None if passed is None else bool(passed), "method": method})
-        if passed is False:
+        if passed is not None and not passed:
             raise _InvariantStop(label)
 
     def unconfirm(label, reason, method="insufficient_context"):
@@ -374,11 +375,159 @@ def _raster_readback(ctx, output, proposal, persisted, check, unconfirm):
 
 
 def _raster_semantic_checks(ctx, output, proposal, check, unconfirm):
-    """Grid alignment, nodata accounting and pixel spot checks; filled by the R2 native task."""
+    """Grid alignment, nodata accounting and deterministic pixel spot checks.
+
+    Terrain spots use an independent numpy implementation of the published Horn
+    3x3 formulas; GDAL computes in float32 (hillshade uint8), so tolerances are
+    float32 rounding margins, not an independent oracle."""
+    import numpy as np
+    verb, parameters, inputs = ctx["verb"], ctx["parameters"], ctx["inputs"]
+    grid = output["grid"]
+    data = output["raster"]["data"]
+    valid = sum(v is not None for row in data for v in row)
+    check("raster_nodata_accounting",
+          grid["valid_pixel_count"] == valid and valid + grid["nodata_pixel_count"] == grid["width"] * grid["height"],
+          "pixel_count_accounting")
+    arr = np.array([[np.nan if v is None else v for v in row] for row in data], dtype=np.float64)
+    if inputs[0].get("kind") == "pointcloud":
+        unconfirm("raster_grid_alignment", "点云转栅格：网格由 PDAL Wrench 分辨率规则生成，无输入网格可对齐")
+        unconfirm("raster_pixel_spot", "点云转栅格的像元真值依赖 PDAL 内部网格规则，本地无法独立复算")
+        return
+    source = inputs[0]
+    src = np.array([[np.nan if v is None else v for v in row] for row in source["raster"]["data"]], dtype=np.float64)
+    aligned = (grid["transform"] == source["raster"]["transform"]
+               and grid["width"] == source["grid"]["width"] and grid["height"] == source["grid"]["height"])
+    if verb == "gis_raster_calc":
+        aligned = aligned and all(d["raster"]["transform"] == source["raster"]["transform"]
+                                  and d["grid"]["width"] == grid["width"] and d["grid"]["height"] == grid["height"]
+                                  for d in inputs[1:])
+    check("raster_grid_alignment", aligned, "grid_property_exact_comparison")
+
+    def spot_indices(mask, limit=16):
+        rows, cols = np.where(mask)
+        if len(rows) == 0:
+            return []
+        picks = np.linspace(0, len(rows) - 1, min(limit, len(rows))).astype(int)
+        return [(int(rows[i]), int(cols[i])) for i in picks]
+
+    if verb == "gis_raster_calc":
+        arrays = [np.array([[np.nan if v is None else v for v in row] for row in d["raster"]["data"]], dtype=np.float64)
+                  for d in inputs]
+        mask = np.logical_or.reduce([np.isnan(a) for a in arrays])
+        check("raster_nodata_mask_semantics", np.array_equal(np.isnan(arr), mask), "nodata_union_exact")
+        ok = True
+        for r, c in spot_indices(~mask):
+            expected = _raster_expression(parameters["expression"], [a[r, c] for a in arrays])
+            ok &= abs(arr[r, c] - expected) <= 1e-9 * max(1.0, abs(expected))
+        check("raster_pixel_spot", ok, "same_grammar_independent_arithmetic_recompute")
+    elif verb in ("gis_slope", "gis_aspect", "gis_hillshade"):
+        cell_x, cell_y = grid["transform"][0], -grid["transform"][4]
+        interior = np.isfinite(src[1:-1, 1:-1])
+        for dr in range(3):
+            for dc in range(3):
+                interior &= np.isfinite(src[dr:dr + src.shape[0] - 2, dc:dc + src.shape[1] - 2])
+        expected_mask = np.ones(src.shape, dtype=bool)
+        expected_mask[1:-1, 1:-1] = ~interior
+        if verb == "gis_aspect":
+            dzdx = ((src[:-2, 2:] + 2 * src[1:-1, 2:] + src[2:, 2:])
+                    - (src[:-2, :-2] + 2 * src[1:-1, :-2] + src[2:, :-2])) / (8 * cell_x)
+            dzdy = ((src[2:, :-2] + 2 * src[2:, 1:-1] + src[2:, 2:])
+                    - (src[:-2, :-2] + 2 * src[:-2, 1:-1] + src[:-2, 2:])) / (8 * cell_y)
+            expected_mask[1:-1, 1:-1] |= (dzdx == 0) & (dzdy == 0)
+        check("raster_nodata_mask_semantics", np.array_equal(np.isnan(arr), expected_mask), "horn_3x3_mask_exact")
+        zf = parameters["z_factor"]
+        ok = True
+        interior_full = np.zeros(src.shape, dtype=bool)
+        interior_full[1:-1, 1:-1] = interior
+        for r, c in spot_indices(interior_full):
+            w = src[r - 1:r + 2, c - 1:c + 2]
+            dzdx = ((w[0, 2] + 2 * w[1, 2] + w[2, 2]) - (w[0, 0] + 2 * w[1, 0] + w[2, 0])) / (8 * cell_x)
+            dzdy = ((w[2, 0] + 2 * w[2, 1] + w[2, 2]) - (w[0, 0] + 2 * w[0, 1] + w[0, 2])) / (8 * cell_y)
+            slope = math.atan(zf * math.hypot(dzdx, dzdy))
+            if verb == "gis_slope":
+                expected = math.degrees(slope)
+                ok &= abs(arr[r, c] - expected) <= 1e-6 * max(1.0, abs(expected))
+            elif verb == "gis_aspect":
+                if dzdx == 0 and dzdy == 0:
+                    ok &= np.isnan(arr[r, c])
+                else:
+                    expected = math.degrees(math.atan2(-dzdx, dzdy)) % 360
+                    diff = abs(arr[r, c] - expected)
+                    ok &= min(diff, 360 - diff) <= 1e-4
+            else:
+                aspect = math.atan2(-dzdx, dzdy) % (2 * math.pi)
+                zenith = math.radians(90 - parameters["altitude"])
+                azimuth = math.radians(parameters["azimuth"])
+                expected = 255 * (math.cos(zenith) * math.cos(slope)
+                                  + math.sin(zenith) * math.sin(slope) * math.cos(azimuth - aspect))
+                ok &= abs(arr[r, c] - expected) <= 1.0
+        check("raster_pixel_spot", ok, "same_formula_independent_horn_recompute_float32_margin")
+    elif verb == "gis_reclassify":
+        check("raster_nodata_mask_semantics", np.array_equal(np.isnan(arr), np.isnan(src)), "nodata_propagation_exact")
+        rules = sorted(parameters["rules"], key=lambda r: (r["min"], r["max"]))
+        ok = True
+        for r, c in spot_indices(np.isfinite(src)):
+            value = src[r, c]
+            mapped = None
+            for rule in rules:
+                lo = value >= rule["min"] if rule["min_inclusive"] else value > rule["min"]
+                hi = value <= rule["max"] if rule["max_inclusive"] else value < rule["max"]
+                if lo and hi:
+                    mapped = rule["value"]
+                    break
+            expected = mapped if mapped is not None else (value if parameters["unmapped"] == "keep" else np.nan)
+            ok &= (np.isnan(arr[r, c]) if np.isnan(expected) else arr[r, c] == expected)
+        check("raster_pixel_spot", ok, "constructed_rule_mapping_truth")
+
+
+def _raster_expression(expression, values):
+    """Independent evaluator for the published A..Z + - * / % raster grammar."""
+    import ast
+    import operator
+    tree = ast.parse(expression, mode="eval")
+    ops = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul,
+           ast.Div: operator.truediv, ast.Mod: operator.mod}
+    names = {chr(65 + i): v for i, v in enumerate(values)}
+
+    def visit(node):
+        if isinstance(node, ast.Expression):
+            return visit(node.body)
+        if isinstance(node, ast.Constant) and type(node.value) in (int, float):
+            return float(node.value)
+        if isinstance(node, ast.Name) and node.id in names:
+            return names[node.id]
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
+            return (-1 if isinstance(node.op, ast.USub) else 1) * visit(node.operand)
+        if isinstance(node, ast.BinOp) and type(node.op) in ops:
+            return ops[type(node.op)](visit(node.left), visit(node.right))
+        raise GISFault("INVALID_ARGUMENT", "栅格表达式语法超出已公布文法")
+    return float(visit(tree))
 
 
 def _pointcloud_semantic_checks(ctx, output, proposal, check, unconfirm):
-    """Point count/dimension accounting; filled by the R2 native task."""
+    """Point count/dimension accounting against declared PDAL action semantics."""
+    from .pointcloud import fingerprint
+    parameters, inputs = ctx["parameters"], ctx["inputs"]
+    action = parameters["action"]
+    n_in = inputs[0]["point_count"]
+    out_count = output["point_count"]
+    check("pointcloud_dimensions_preserved", output["point_dimensions"] == inputs[0]["point_dimensions"],
+          "dimension_list_readback")
+    if action == "merge":
+        check("pointcloud_count_accounting", out_count == sum(d["point_count"] for d in inputs),
+              "constructed_sum_truth")
+    elif action == "thin_decimate":
+        step, offset = parameters["params"]["step"], parameters["params"]["offset"]
+        check("pointcloud_count_accounting", out_count == len(range(offset, n_in, step)),
+              "constructed_decimation_truth")
+    elif action in ("reproject", "convert"):
+        check("pointcloud_count_accounting", out_count == n_in, "count_preservation")
+    elif action in ("clip", "thin_radius"):
+        check("pointcloud_count_accounting", out_count <= n_in, "pdal_semantics_upper_bound")
+    else:
+        unconfirm("pointcloud_count_accounting", "该动作输出栅格/矢量，点数对账不适用")
+    check("pointcloud_fingerprint_recomputed", fingerprint(output["pointcloud"], output["crs"]) == output["fingerprint"],
+          "byte_sha256_binding")
 
 
 def _pointcloud_readback(ctx, output, proposal, persisted, check, unconfirm):
@@ -608,6 +757,45 @@ def _vector_semantic_checks(ctx, output, proposal, check, unconfirm):
               and all(f["geometry"] is not None and _shape(f["geometry"]).geom_type == "Point" for f in feats)
               and output["fields"] == inputs[0]["fields"],
               "declared_seed_semantics_readback")
+
+    elif verb == "gis_zonal_statistics":
+        import numpy as np
+        from affine import Affine
+        from rasterio.features import geometry_mask
+        zones, values = inputs
+        check("zonal_zone_count", output["feature_count"] == zones["feature_count"]
+              and all(f["geometry"] is None for f in feats), "count_and_table_readback")
+        check("zonal_table_schema", [f["name"] for f in output["fields"]] == [parameters["zone_field"]] + parameters["statistics"],
+              "schema_readback")
+        z = np.array([[np.nan if v is None else v for v in row] for row in values["raster"]["data"]], dtype=np.float64)
+        transform = Affine(*values["raster"]["transform"])
+        counts_ok, stats_ok = True, True
+        for f, row in zip(zones["geojson"]["features"], feats):
+            inside = geometry_mask([f["geometry"]], z.shape, transform, invert=True, all_touched=False)
+            samples = z[inside & np.isfinite(z)]
+            props = row["properties"]
+            if proposal is not None:
+                receipt = next((c for c in proposal.get("zone_pixel_counts", []) if c["zone"] == props[parameters["zone_field"]]), None)
+                counts_ok &= receipt is not None and receipt["pixel_count"] == int(inside.sum()) \
+                    and receipt["valid_pixel_count"] == int(samples.size) \
+                    and receipt["nodata_pixel_count"] == int((inside & np.isnan(z)).sum())
+            for s in parameters["statistics"]:
+                if s == "count":
+                    counts_ok &= props[s] == int(samples.size)
+                    continue
+                expected = float({"sum": np.sum, "mean": np.mean, "min": np.min, "max": np.max}[s](samples)) if samples.size else None
+                got = props[s]
+                if expected is None:
+                    stats_ok &= got is None
+                else:
+                    stats_ok &= got is not None and abs(got - expected) <= 1e-9 * max(1.0, abs(expected))
+        check("zonal_pixel_accounting", counts_ok, "same_kernel_pixel_center_mask_recount")
+        check("zonal_stats_recompute", stats_ok, "same_kernel_numpy_recompute")
+
+    elif verb == "gis_pointcloud_process" and parameters.get("action") == "boundary":
+        check("pc_boundary_vector_contract",
+              output["fields"] == [] and output["crs"]["definition_hash"] == inputs[0]["crs"]["definition_hash"],
+              "declared_addendum_contract_readback")
 
 
 def _result_checks(ctx, proposal, check, unconfirm):
