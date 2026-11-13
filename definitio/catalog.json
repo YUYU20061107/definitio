@@ -1,0 +1,209 @@
+{
+  "provenance": {
+    "source": "G1 handoff verbs.json (read-only identity snapshot)",
+    "sha256": "b8e0eef4d668db43f8183b91dff48cfd19a499a8e393c409abcab8744a938bf8",
+    "scope": "Names and IDs only; no evidence statuses upgraded"
+  },
+  "verbs": [
+    {
+      "name": "gis_run_gp",
+      "vid": "V01",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_run_processing",
+      "vid": "V02",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_list_algorithms",
+      "vid": "V03",
+      "g1_level": "R0"
+    },
+    {
+      "name": "gis_describe_algorithm",
+      "vid": "V04",
+      "g1_level": "R0"
+    },
+    {
+      "name": "gis_create_dataset",
+      "vid": "V05",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_add_field",
+      "vid": "V06",
+      "g1_level": "R2"
+    },
+    {
+      "name": "gis_delete_field",
+      "vid": "V07",
+      "g1_level": "R3"
+    },
+    {
+      "name": "gis_calculate_field",
+      "vid": "V08",
+      "g1_level": "R2"
+    },
+    {
+      "name": "gis_copy_dataset",
+      "vid": "V09",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_rename_dataset",
+      "vid": "V10",
+      "g1_level": "R2"
+    },
+    {
+      "name": "gis_delete_dataset",
+      "vid": "V11",
+      "g1_level": "R3"
+    },
+    {
+      "name": "gis_merge_datasets",
+      "vid": "V12",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_append_dataset",
+      "vid": "V13",
+      "g1_level": "R2"
+    },
+    {
+      "name": "gis_assign_projection",
+      "vid": "V14",
+      "g1_level": "R2"
+    },
+    {
+      "name": "gis_reproject",
+      "vid": "V15",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_convert_format",
+      "vid": "V16",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_import_data",
+      "vid": "V17",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_buffer",
+      "vid": "V18",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_clip",
+      "vid": "V19",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_overlay",
+      "vid": "V20",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_dissolve",
+      "vid": "V21",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_spatial_join",
+      "vid": "V22",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_raster_calc",
+      "vid": "V23",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_slope",
+      "vid": "V24",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_aspect",
+      "vid": "V25",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_hillshade",
+      "vid": "V26",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_reclassify",
+      "vid": "V27",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_zonal_statistics",
+      "vid": "V28",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_field_statistics",
+      "vid": "V29",
+      "g1_level": "R0"
+    },
+    {
+      "name": "gis_spatial_filter",
+      "vid": "V30",
+      "g1_level": "R0"
+    },
+    {
+      "name": "gis_measure",
+      "vid": "V31",
+      "g1_level": "R0"
+    },
+    {
+      "name": "gis_validate_geometry",
+      "vid": "V32",
+      "g1_level": "R0"
+    },
+    {
+      "name": "gis_serve_vector_tile",
+      "vid": "V33",
+      "g1_level": "R0"
+    },
+    {
+      "name": "gis_publish_layer",
+      "vid": "V34",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_list_services",
+      "vid": "V35",
+      "g1_level": "R0"
+    },
+    {
+      "name": "gis_query_observations",
+      "vid": "V36",
+      "g1_level": "R0"
+    },
+    {
+      "name": "gis_pointcloud_info",
+      "vid": "V37",
+      "g1_level": "R0"
+    },
+    {
+      "name": "gis_pointcloud_process",
+      "vid": "V38",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_add_layer_from_catalog",
+      "vid": "V39",
+      "g1_level": "R1"
+    },
+    {
+      "name": "gis_export_map_image",
+      "vid": "V40",
+      "g1_level": "R1"
+    }
+  ]
+}

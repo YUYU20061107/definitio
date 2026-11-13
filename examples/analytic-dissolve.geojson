@@ -1,0 +1,176 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "group_code": "A"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2.0,
+              0.0
+            ],
+            [
+              2.0,
+              1.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              2.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "group_code": "A"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.0,
+              0.0
+            ],
+            [
+              5.0,
+              1.0
+            ],
+            [
+              4.0,
+              1.0
+            ],
+            [
+              4.0,
+              0.0
+            ],
+            [
+              5.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "group_code": "A"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "group_code": "B"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              11.0,
+              0.0
+            ],
+            [
+              11.0,
+              1.0
+            ],
+            [
+              10.0,
+              1.0
+            ],
+            [
+              10.0,
+              0.0
+            ],
+            [
+              11.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "group_code": null
+      }
+    }
+  ],
+  "definitio": {
+    "crs": {
+      "code": "EPSG:32649"
+    },
+    "source_kind": "synthetic_analytic_fixture"
+  }
+}

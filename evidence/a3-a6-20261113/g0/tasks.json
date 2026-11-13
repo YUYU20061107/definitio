@@ -1,0 +1,1680 @@
+{
+  "format": "a3-taskset-v1",
+  "fixtures": [
+    {
+      "name": "source",
+      "crs": "EPSG:32649",
+      "geojson": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "group_code": "A",
+              "score": 10
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    2.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    1.0
+                  ],
+                  [
+                    1.0,
+                    1.0
+                  ],
+                  [
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "group_code": "A",
+              "score": 20
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    5.0,
+                    0.0
+                  ],
+                  [
+                    5.0,
+                    1.0
+                  ],
+                  [
+                    4.0,
+                    1.0
+                  ],
+                  [
+                    4.0,
+                    0.0
+                  ],
+                  [
+                    5.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "group_code": "A",
+              "score": 30
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "group_code": "B",
+              "score": 40
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    11.0,
+                    0.0
+                  ],
+                  [
+                    11.0,
+                    1.0
+                  ],
+                  [
+                    10.0,
+                    1.0
+                  ],
+                  [
+                    10.0,
+                    0.0
+                  ],
+                  [
+                    11.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "group_code": null,
+              "score": null
+            }
+          }
+        ],
+        "definitio": {
+          "crs": {
+            "code": "EPSG:32649"
+          },
+          "source_kind": "synthetic_analytic_fixture"
+        }
+      }
+    },
+    {
+      "name": "second",
+      "crs": "EPSG:32649",
+      "geojson": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "group_code": "A",
+              "score": 10
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    2.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    1.0
+                  ],
+                  [
+                    1.0,
+                    1.0
+                  ],
+                  [
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "group_code": "A",
+              "score": 20
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    5.0,
+                    0.0
+                  ],
+                  [
+                    5.0,
+                    1.0
+                  ],
+                  [
+                    4.0,
+                    1.0
+                  ],
+                  [
+                    4.0,
+                    0.0
+                  ],
+                  [
+                    5.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "group_code": "A",
+              "score": 30
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "group_code": "B",
+              "score": 40
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    11.0,
+                    0.0
+                  ],
+                  [
+                    11.0,
+                    1.0
+                  ],
+                  [
+                    10.0,
+                    1.0
+                  ],
+                  [
+                    10.0,
+                    0.0
+                  ],
+                  [
+                    11.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "group_code": null,
+              "score": null
+            }
+          }
+        ],
+        "definitio": {
+          "crs": {
+            "code": "EPSG:32649"
+          },
+          "source_kind": "synthetic_analytic_fixture"
+        }
+      }
+    },
+    {
+      "name": "mask",
+      "crs": "EPSG:32649",
+      "geojson": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    -1
+                  ],
+                  [
+                    1.5,
+                    -1
+                  ],
+                  [
+                    1.5,
+                    2
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    0,
+                    -1
+                  ]
+                ]
+              ]
+            },
+            "properties": {}
+          }
+        ]
+      }
+    },
+    {
+      "name": "geographic",
+      "crs": "EPSG:4326",
+      "geojson": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                113,
+                23
+              ]
+            },
+            "properties": {}
+          }
+        ]
+      }
+    },
+    {
+      "name": "invalid",
+      "crs": "EPSG:32649",
+      "geojson": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    0,
+                    2
+                  ],
+                  [
+                    2,
+                    0
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            },
+            "properties": {}
+          }
+        ]
+      }
+    },
+    {
+      "name": "mismatch",
+      "crs": "EPSG:32649",
+      "geojson": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                0,
+                0
+              ]
+            },
+            "properties": {
+              "other": 1
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "T01",
+      "title": "分组融合再缓冲",
+      "category": "composition",
+      "prompt": "把 source 按 group_code 分组融合，再逐组作 1 米缓冲，保留三个组；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "分组融合再缓冲",
+          "steps": [
+            {
+              "verb": "gis_dissolve",
+              "parameters": {
+                "input": "source",
+                "target": "job_groups",
+                "fields": [
+                  "group_code"
+                ]
+              }
+            },
+            {
+              "verb": "gis_buffer",
+              "parameters": {
+                "input": "$previous",
+                "target": "job_buffer",
+                "distance": 1,
+                "unit": "m",
+                "dissolve": false
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 3
+                }
+              },
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 3
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_dissolve",
+        "gis_buffer"
+      ],
+      "prediction": "smaller naming effect"
+    },
+    {
+      "task_id": "T02",
+      "title": "坐标转换",
+      "category": "distinction",
+      "prompt": "将 geographic 的坐标真正变换到 EPSG:32649，输出新副本；仅预演。不要只改 CRS 标签。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "坐标转换",
+          "steps": [
+            {
+              "verb": "gis_reproject",
+              "parameters": {
+                "input": "geographic",
+                "target": "job_projected",
+                "target_crs": "EPSG:32649"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "effects": {
+                  "crs_changed": true
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_reproject"
+      ],
+      "prediction": "largest naming effect"
+    },
+    {
+      "task_id": "T03",
+      "title": "合并为新数据集",
+      "category": "distinction",
+      "prompt": "把 source 和 second 的同构记录合并为新的 job_merged，原逻辑对象不变；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "合并为新数据集",
+          "steps": [
+            {
+              "verb": "gis_merge_datasets",
+              "parameters": {
+                "inputs": [
+                  "source",
+                  "second"
+                ],
+                "target": "job_merged"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 10
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_merge_datasets"
+      ],
+      "prediction": "largest naming effect"
+    },
+    {
+      "task_id": "T04",
+      "title": "恢复步骤授权字段错误",
+      "category": "recovery",
+      "prompt": "修复给出的失败方案，复制 source 后检查几何，授权与幂等字段应放在控制面；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "恢复步骤授权字段错误",
+          "steps": [
+            {
+              "verb": "gis_copy_dataset",
+              "parameters": {
+                "source": "source",
+                "target": "job_copy"
+              }
+            },
+            {
+              "verb": "gis_validate_geometry",
+              "parameters": {
+                "dataset": "$previous",
+                "repair": false
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 5
+                }
+              },
+              {
+                "state": "PASS",
+                "result_summary": {
+                  "scalars": {
+                    "valid": true
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": {
+        "goal": "bad control",
+        "steps": [
+          {
+            "verb": "gis_copy_dataset",
+            "parameters": {
+              "source": "source",
+              "target": "job_copy",
+              "authorization_id": "misplaced"
+            }
+          },
+          {
+            "verb": "gis_validate_geometry",
+            "parameters": {
+              "dataset": "$previous",
+              "repair": false
+            }
+          }
+        ]
+      },
+      "choice_verbs": [
+        "gis_copy_dataset",
+        "gis_validate_geometry"
+      ],
+      "prediction": "largest naming effect"
+    },
+    {
+      "task_id": "T05",
+      "title": "统计在丢字段之前",
+      "category": "composition",
+      "prompt": "先对 source 的 score 求和，再按 group_code 融合。融合只保留分组字段；仅预演，统计在前。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "统计在丢字段之前",
+          "steps": [
+            {
+              "verb": "gis_field_statistics",
+              "parameters": {
+                "dataset": "source",
+                "fields": [
+                  "score"
+                ],
+                "group_by": [],
+                "statistics": [
+                  "sum"
+                ],
+                "output": "result",
+                "null_policy": "exclude"
+              }
+            },
+            {
+              "verb": "gis_dissolve",
+              "parameters": {
+                "input": "source",
+                "target": "job_groups",
+                "fields": [
+                  "group_code"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS"
+              },
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 3
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_field_statistics",
+        "gis_dissolve"
+      ],
+      "prediction": "smaller naming effect"
+    },
+    {
+      "task_id": "T06",
+      "title": "核心路线复制",
+      "category": "distinction",
+      "prompt": "只用核心能力复制 source 为新数据集并预演；不要调用或安装 QGIS、ArcPy 或服务后端。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "核心路线复制",
+          "steps": [
+            {
+              "verb": "gis_copy_dataset",
+              "parameters": {
+                "source": "source",
+                "target": "job_copy"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 5
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_copy_dataset"
+      ],
+      "prediction": "largest naming effect"
+    },
+    {
+      "task_id": "T07",
+      "title": "裁剪几何",
+      "category": "distinction",
+      "prompt": "用 mask 裁切 source 的多边形几何，保留来源属性；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "裁剪几何",
+          "steps": [
+            {
+              "verb": "gis_clip",
+              "parameters": {
+                "input": "source",
+                "clip_by": "mask",
+                "target": "job_clip"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 3
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_clip"
+      ],
+      "prediction": "largest naming effect"
+    },
+    {
+      "task_id": "T08",
+      "title": "选择完整记录",
+      "category": "distinction",
+      "prompt": "选择 source 中与矩形 POLYGON ((0 -1,1.5 -1,1.5 2,0 2,0 -1)) 相交的完整记录，不裁切；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "选择完整记录",
+          "steps": [
+            {
+              "verb": "gis_spatial_filter",
+              "parameters": {
+                "table": "source",
+                "predicate": "intersects",
+                "reference_wkt": "POLYGON ((0 -1,1.5 -1,1.5 2,0 2,0 -1))"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS"
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_spatial_filter"
+      ],
+      "prediction": "largest naming effect"
+    },
+    {
+      "task_id": "T09",
+      "title": "相交叠加",
+      "category": "distinction",
+      "prompt": "求 source 与 mask 的多边形相交叠加，保留输入侧属性；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "相交叠加",
+          "steps": [
+            {
+              "verb": "gis_overlay",
+              "parameters": {
+                "input": "source",
+                "overlay": "mask",
+                "target": "job_intersection",
+                "operation": "intersection"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 3
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_overlay"
+      ],
+      "prediction": "largest naming effect"
+    },
+    {
+      "task_id": "T10",
+      "title": "差集叠加",
+      "category": "distinction",
+      "prompt": "从 source 的多边形中减去 mask 覆盖部分；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "差集叠加",
+          "steps": [
+            {
+              "verb": "gis_overlay",
+              "parameters": {
+                "input": "source",
+                "overlay": "mask",
+                "target": "job_difference",
+                "operation": "difference"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS"
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_overlay"
+      ],
+      "prediction": "largest naming effect"
+    },
+    {
+      "task_id": "T11",
+      "title": "面积量测",
+      "category": "composition",
+      "prompt": "在 EPSG:32649 下量测 POLYGON ((0 0,2 0,2 3,0 3,0 0)) 的面积，单位平方米；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "面积量测",
+          "steps": [
+            {
+              "verb": "gis_measure",
+              "parameters": {
+                "operation": "area",
+                "a_wkt": "POLYGON ((0 0,2 0,2 3,0 3,0 0))",
+                "crs": "EPSG:32649"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "result_summary": {
+                  "scalars": {
+                    "value": 6.0
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_measure"
+      ],
+      "prediction": "smaller naming effect"
+    },
+    {
+      "task_id": "T12",
+      "title": "米制缓冲",
+      "category": "composition",
+      "prompt": "对 source 作 2 米缓冲，保留每条记录，不全体融合；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "米制缓冲",
+          "steps": [
+            {
+              "verb": "gis_buffer",
+              "parameters": {
+                "input": "source",
+                "target": "job_buffer",
+                "distance": 2,
+                "unit": "m",
+                "dissolve": false
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 5
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_buffer"
+      ],
+      "prediction": "smaller naming effect"
+    },
+    {
+      "task_id": "T13",
+      "title": "缓冲后检查几何",
+      "category": "composition",
+      "prompt": "source 作 1 米逐记录缓冲后检查有效性；仅预演，第二步引用紧邻成果。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "缓冲后检查几何",
+          "steps": [
+            {
+              "verb": "gis_buffer",
+              "parameters": {
+                "input": "source",
+                "target": "job_buffer",
+                "distance": 1,
+                "unit": "m",
+                "dissolve": false
+              }
+            },
+            {
+              "verb": "gis_validate_geometry",
+              "parameters": {
+                "dataset": "$previous",
+                "repair": false
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 5
+                }
+              },
+              {
+                "state": "PASS",
+                "result_summary": {
+                  "scalars": {
+                    "valid": true
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_buffer",
+        "gis_validate_geometry"
+      ],
+      "prediction": "smaller naming effect"
+    },
+    {
+      "task_id": "T14",
+      "title": "仅改坐标系标签",
+      "category": "distinction",
+      "prompt": "仅将 source 副本的 CRS 标签改为 EPSG:32650，不移动数值坐标；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "仅改坐标系标签",
+          "steps": [
+            {
+              "verb": "gis_assign_projection",
+              "parameters": {
+                "dataset": "source",
+                "target": "job_relabel",
+                "crs": "EPSG:32650"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 5
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_assign_projection"
+      ],
+      "prediction": "largest naming effect"
+    },
+    {
+      "task_id": "T15",
+      "title": "全体融合",
+      "category": "composition",
+      "prompt": "将 source 全部面融合为一个组，不保留属性；仅预演，显式给空分组字段。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "全体融合",
+          "steps": [
+            {
+              "verb": "gis_dissolve",
+              "parameters": {
+                "input": "source",
+                "target": "job_all",
+                "fields": []
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 1
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_dissolve"
+      ],
+      "prediction": "smaller naming effect"
+    },
+    {
+      "task_id": "T16",
+      "title": "数值统计排除空值",
+      "category": "composition",
+      "prompt": "对 source 的 score 计算 sum 和 count，明确排除空值；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "数值统计排除空值",
+          "steps": [
+            {
+              "verb": "gis_field_statistics",
+              "parameters": {
+                "dataset": "source",
+                "fields": [
+                  "score"
+                ],
+                "group_by": [],
+                "statistics": [
+                  "sum",
+                  "count"
+                ],
+                "output": "result",
+                "null_policy": "exclude"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS"
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_field_statistics"
+      ],
+      "prediction": "smaller naming effect"
+    },
+    {
+      "task_id": "T17",
+      "title": "复制而非重命名",
+      "category": "distinction",
+      "prompt": "保留 source 原对象，复制为新数据集 job_copy；仅预演，不要重命名。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "复制而非重命名",
+          "steps": [
+            {
+              "verb": "gis_copy_dataset",
+              "parameters": {
+                "source": "source",
+                "target": "job_copy"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 5
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_copy_dataset"
+      ],
+      "prediction": "largest naming effect"
+    },
+    {
+      "task_id": "T18",
+      "title": "字段计算副本",
+      "category": "scope_rejection",
+      "prompt": "将 second 的 score 乘以 2，产生 job_calculated 副本；仅预演。空值会被拒绝，请先预演并如实报告错误，不自行删行。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "字段计算副本",
+          "steps": [
+            {
+              "verb": "gis_calculate_field",
+              "parameters": {
+                "dataset": "second",
+                "target": "job_calculated",
+                "field": "score",
+                "expression": "score * 2"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": false,
+        "error": {
+          "code": "SCHEMA_MISMATCH"
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_calculate_field"
+      ],
+      "prediction": "smaller naming effect"
+    },
+    {
+      "task_id": "T19",
+      "title": "添加字段副本",
+      "category": "composition",
+      "prompt": "给 source 的新副本增加 integer 字段 flag，nullable=false，default=1；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "添加字段副本",
+          "steps": [
+            {
+              "verb": "gis_add_field",
+              "parameters": {
+                "dataset": "source",
+                "target": "job_added",
+                "field": {
+                  "name": "flag",
+                  "type": "integer",
+                  "nullable": false,
+                  "default": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 5
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_add_field"
+      ],
+      "prediction": "smaller naming effect"
+    },
+    {
+      "task_id": "T20",
+      "title": "地理坐标缓冲拒绝",
+      "category": "scope_rejection",
+      "prompt": "直接在 geographic 上预演 1 米缓冲，确认明确拒绝地理 CRS；不要猜投影或静默修复。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "地理坐标缓冲拒绝",
+          "steps": [
+            {
+              "verb": "gis_buffer",
+              "parameters": {
+                "input": "geographic",
+                "target": "job_badbuffer",
+                "distance": 1,
+                "unit": "m",
+                "dissolve": false
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": false,
+        "error": {
+          "code": "NOT_SUPPORTED"
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_buffer"
+      ],
+      "prediction": "smaller naming effect"
+    },
+    {
+      "task_id": "T21",
+      "title": "异构合并拒绝",
+      "category": "scope_rejection",
+      "prompt": "预演 source 与 mismatch 合并为新数据集，确认字段不兼容会被拒绝；不要静默改字段。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "异构合并拒绝",
+          "steps": [
+            {
+              "verb": "gis_merge_datasets",
+              "parameters": {
+                "inputs": [
+                  "source",
+                  "mismatch"
+                ],
+                "target": "job_badmerge"
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": false,
+        "error": {
+          "code": "SCHEMA_MISMATCH"
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_merge_datasets"
+      ],
+      "prediction": "smaller naming effect"
+    },
+    {
+      "task_id": "T22",
+      "title": "无效几何诊断",
+      "category": "composition",
+      "prompt": "只诊断 invalid 的几何有效性，不修复；仅预演，valid=false 是成功诊断。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "无效几何诊断",
+          "steps": [
+            {
+              "verb": "gis_validate_geometry",
+              "parameters": {
+                "dataset": "invalid",
+                "repair": false
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "result_summary": {
+                  "scalars": {
+                    "valid": false
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": null,
+      "choice_verbs": [
+        "gis_validate_geometry"
+      ],
+      "prediction": "smaller naming effect"
+    },
+    {
+      "task_id": "T23",
+      "title": "恢复目标名串链错误",
+      "category": "recovery",
+      "prompt": "修复给出的失败方案：复制 source 后检查几何，使用正确的紧邻数据引用；仅预演。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "恢复目标名串链错误",
+          "steps": [
+            {
+              "verb": "gis_copy_dataset",
+              "parameters": {
+                "source": "source",
+                "target": "job_copy"
+              }
+            },
+            {
+              "verb": "gis_validate_geometry",
+              "parameters": {
+                "dataset": "$previous",
+                "repair": false
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 5
+                }
+              },
+              {
+                "state": "PASS",
+                "result_summary": {
+                  "scalars": {
+                    "valid": true
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": {
+        "goal": "bad reference",
+        "steps": [
+          {
+            "verb": "gis_copy_dataset",
+            "parameters": {
+              "source": "source",
+              "target": "job_copy"
+            }
+          },
+          {
+            "verb": "gis_validate_geometry",
+            "parameters": {
+              "dataset": "job_copy",
+              "repair": false
+            }
+          }
+        ]
+      },
+      "choice_verbs": [
+        "gis_copy_dataset",
+        "gis_validate_geometry"
+      ],
+      "prediction": "largest naming effect"
+    },
+    {
+      "task_id": "T24",
+      "title": "恢复步骤幂等字段错误",
+      "category": "recovery",
+      "prompt": "修复给出的失败方案：按 group_code 融合 source，步骤内不应包含控制面幂等字段；仅预演并保留 null 组。",
+      "reference_call": {
+        "name": "task_dry_run",
+        "arguments": {
+          "goal": "恢复步骤幂等字段错误",
+          "steps": [
+            {
+              "verb": "gis_dissolve",
+              "parameters": {
+                "input": "source",
+                "target": "job_groups",
+                "fields": [
+                  "group_code"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ok": true,
+        "data": {
+          "preview": {
+            "ok": true,
+            "workspace_writes": 0,
+            "steps": [
+              {
+                "state": "PASS",
+                "output": {
+                  "feature_count": 3
+                }
+              }
+            ]
+          }
+        }
+      },
+      "injection": {
+        "goal": "bad request key",
+        "steps": [
+          {
+            "verb": "gis_dissolve",
+            "parameters": {
+              "input": "source",
+              "target": "job_groups",
+              "fields": [
+                "group_code"
+              ],
+              "request_id": "misplaced"
+            }
+          }
+        ]
+      },
+      "choice_verbs": [
+        "gis_dissolve"
+      ],
+      "prediction": "largest naming effect"
+    }
+  ]
+}

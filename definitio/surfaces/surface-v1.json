@@ -1,0 +1,582 @@
+{
+  "format": "definitio-surface-profile-v1",
+  "name": "surface-v1",
+  "version": 1,
+  "status": "CANDIDATE_NOT_ADOPTED",
+  "tools": {
+    "gis_list_algorithms": "gis_list_algorithms",
+    "gis_describe_algorithm": "gis_describe_algorithm",
+    "gis_create_dataset": "gis_create_dataset",
+    "gis_add_field": "gis_add_field",
+    "gis_calculate_field": "gis_calculate_field",
+    "gis_copy_dataset": "gis_copy_to_new_dataset",
+    "gis_merge_datasets": "gis_merge_into_new_dataset",
+    "gis_assign_projection": "gis_relabel_crs_metadata",
+    "gis_reproject": "gis_transform_coordinates",
+    "gis_convert_format": "gis_convert_format",
+    "gis_buffer": "gis_buffer",
+    "gis_clip": "gis_clip",
+    "gis_overlay": "gis_overlay",
+    "gis_dissolve": "gis_dissolve_groups",
+    "gis_field_statistics": "gis_field_statistics",
+    "gis_spatial_filter": "gis_select_whole_records",
+    "gis_measure": "gis_measure",
+    "gis_validate_geometry": "gis_validate_geometry",
+    "gis_delete_field": "gis_delete_field",
+    "gis_rename_dataset": "gis_rename_dataset",
+    "gis_append_dataset": "gis_append_to_existing_dataset",
+    "gis_import_data": "gis_import_data",
+    "gis_spatial_join": "gis_spatial_join",
+    "gis_raster_calc": "gis_raster_calc",
+    "gis_slope": "gis_slope",
+    "gis_aspect": "gis_aspect",
+    "gis_hillshade": "gis_hillshade",
+    "gis_reclassify": "gis_reclassify",
+    "gis_zonal_statistics": "gis_zonal_statistics",
+    "gis_pointcloud_info": "gis_pointcloud_info",
+    "gis_pointcloud_process": "gis_pointcloud_process",
+    "gis_run_processing": "gis_run_processing",
+    "gis_run_gp": "gis_run_gp",
+    "gis_delete_dataset": "gis_delete_dataset",
+    "gis_serve_vector_tile": "gis_serve_vector_tile",
+    "gis_publish_layer": "gis_publish_layer",
+    "gis_list_services": "gis_list_services",
+    "gis_query_observations": "gis_query_observations",
+    "gis_add_layer_from_catalog": "gis_add_layer_from_catalog",
+    "gis_export_map_image": "gis_export_map_image",
+    "workspace_resource": "workspace_resource",
+    "pointcloud_import": "pointcloud_import",
+    "raster_import": "raster_import",
+    "destructive_preflight": "destructive_preflight",
+    "workspace_list": "workspace_list",
+    "dataset_import": "dataset_import",
+    "dataset_describe": "dataset_describe",
+    "dataset_features": "dataset_features",
+    "task_plan": "workflow_store_plan",
+    "task_execute": "workflow_execute_plan",
+    "task_get": "task_get",
+    "evidence_get": "evidence_get",
+    "artifact_read": "artifact_read",
+    "workflow_route": "workflow_route",
+    "gis_call": "gis_call",
+    "task_dry_run": "workflow_preview_without_writes",
+    "artifact_view": "artifact_view",
+    "authorization_grant": "authorization_grant",
+    "authorization_get": "authorization_get",
+    "authorization_revoke": "authorization_revoke"
+  },
+  "parameters": {
+    "gis_list_algorithms": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "family": "family",
+      "implemented_only": "implemented_only",
+      "query": "query",
+      "request_id": "request_id"
+    },
+    "gis_describe_algorithm": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "algorithm": "algorithm",
+      "request_id": "request_id"
+    },
+    "gis_create_dataset": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "target": "new_dataset_name",
+      "crs": "crs",
+      "fields": "fields",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_add_field": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "dataset": "dataset_id",
+      "target": "new_dataset_name",
+      "field": "field",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_calculate_field": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "dataset": "dataset_id",
+      "target": "new_dataset_name",
+      "field": "field",
+      "expression": "expression",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_copy_dataset": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "source": "source_dataset",
+      "target": "new_dataset_name",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_merge_datasets": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "inputs": "input_datasets",
+      "target": "new_dataset_name",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_assign_projection": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "dataset": "dataset_id",
+      "target": "new_dataset_name",
+      "crs": "crs",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_reproject": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "input": "input_dataset",
+      "target": "new_dataset_name",
+      "target_crs": "target_crs",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_convert_format": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "input": "input_dataset",
+      "target": "new_dataset_name",
+      "format": "format",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_buffer": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "input": "input_dataset",
+      "target": "new_dataset_name",
+      "distance": "distance_metres",
+      "unit": "unit",
+      "dissolve": "dissolve",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_clip": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "input": "input_dataset",
+      "clip_by": "clip_polygon_dataset",
+      "target": "new_dataset_name",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_overlay": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "input": "input_dataset",
+      "overlay": "overlay",
+      "target": "new_dataset_name",
+      "operation": "operation",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_dissolve": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "input": "input_dataset",
+      "target": "new_dataset_name",
+      "fields": "group_fields",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_field_statistics": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "dataset": "dataset_id",
+      "fields": "numeric_fields",
+      "group_by": "group_by",
+      "statistics": "statistics",
+      "output": "output",
+      "null_policy": "null_policy",
+      "request_id": "request_id"
+    },
+    "gis_spatial_filter": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "table": "table",
+      "predicate": "predicate",
+      "reference_wkt": "reference_wkt",
+      "request_id": "request_id"
+    },
+    "gis_measure": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "operation": "operation",
+      "a_wkt": "a_wkt",
+      "crs": "crs",
+      "b_wkt": "b_wkt",
+      "request_id": "request_id"
+    },
+    "gis_validate_geometry": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "dataset": "dataset_id",
+      "repair": "repair",
+      "request_id": "request_id"
+    },
+    "gis_delete_field": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "dataset": "dataset",
+      "target": "target",
+      "fields": "fields",
+      "target_echo": "target_echo",
+      "preflight_id": "preflight_id",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_rename_dataset": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "dataset": "dataset",
+      "new_name": "new_name",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_append_dataset": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "source": "source",
+      "target": "target",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_import_data": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "source_uri": "source_uri",
+      "target_name": "target_name",
+      "format": "format",
+      "kind": "kind",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_spatial_join": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "input": "input_dataset",
+      "join": "join",
+      "target": "new_dataset_name",
+      "predicate": "predicate",
+      "summary": "summary",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_raster_calc": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "inputs": "input_datasets",
+      "expression": "expression",
+      "target": "new_dataset_name",
+      "nodata_policy": "nodata_policy",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_slope": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "input": "input_dataset",
+      "target": "new_dataset_name",
+      "z_factor": "z_factor",
+      "unit": "unit",
+      "nodata_policy": "nodata_policy",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_aspect": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "input": "input_dataset",
+      "target": "new_dataset_name",
+      "z_factor": "z_factor",
+      "convention": "convention",
+      "flat_policy": "flat_policy",
+      "nodata_policy": "nodata_policy",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_hillshade": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "input": "input_dataset",
+      "target": "new_dataset_name",
+      "z_factor": "z_factor",
+      "azimuth": "azimuth",
+      "altitude": "altitude",
+      "nodata_policy": "nodata_policy",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_reclassify": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "input": "input_dataset",
+      "target": "new_dataset_name",
+      "rules": "rules",
+      "unmapped": "unmapped",
+      "nodata_policy": "nodata_policy",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_zonal_statistics": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "zones": "zones",
+      "values": "values",
+      "target": "new_dataset_name",
+      "statistics": "statistics",
+      "output": "output",
+      "zone_field": "zone_field",
+      "nodata_policy": "nodata_policy",
+      "pixel_rule": "pixel_rule",
+      "weighting": "weighting",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_pointcloud_info": {
+      "backend": "backend",
+      "input": "input_dataset",
+      "request_id": "request_id"
+    },
+    "gis_pointcloud_process": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "input": "input_dataset",
+      "target": "new_dataset_name",
+      "action": "action",
+      "params": "params",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_run_processing": {
+      "backend": "backend",
+      "confirm": "confirm",
+      "algorithm": "algorithm",
+      "params": "params",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_run_gp": {
+      "backend": "backend",
+      "tool": "tool",
+      "args": "args",
+      "confirm": "confirm",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_delete_dataset": {
+      "backend": "backend",
+      "dataset": "dataset",
+      "target_echo": "target_echo",
+      "preflight_id": "preflight_id",
+      "confirm": "confirm",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_serve_vector_tile": {
+      "backend": "backend",
+      "table": "table",
+      "z": "z",
+      "x": "x",
+      "y": "y",
+      "geometry_column": "geometry_column",
+      "attributes": "attributes",
+      "request_id": "request_id"
+    },
+    "gis_publish_layer": {
+      "backend": "backend",
+      "dataset_ref": "dataset_ref",
+      "workspace": "workspace",
+      "style": "style",
+      "purpose": "purpose",
+      "confirm": "confirm",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_list_services": {
+      "backend": "backend",
+      "service": "service",
+      "request_id": "request_id"
+    },
+    "gis_query_observations": {
+      "backend": "backend",
+      "entity": "entity",
+      "datastream_id": "datastream_id",
+      "thing_id": "thing_id",
+      "filter": "filter",
+      "expand": "expand",
+      "select": "select",
+      "orderby": "orderby",
+      "top": "top",
+      "skip": "skip",
+      "count": "count",
+      "request_id": "request_id"
+    },
+    "gis_add_layer_from_catalog": {
+      "backend": "backend",
+      "catalog_id": "catalog_id",
+      "map": "map",
+      "purpose": "purpose",
+      "confirm": "confirm",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "gis_export_map_image": {
+      "backend": "backend",
+      "map": "map",
+      "target_path": "target_path",
+      "format": "format",
+      "dpi": "dpi",
+      "confirm": "confirm",
+      "layout": "layout",
+      "request_id": "request_id",
+      "authorization_id": "authorization_id"
+    },
+    "workspace_resource": {
+      "kind": "kind",
+      "name": "name",
+      "properties": "properties",
+      "confirm": "confirm",
+      "request_id": "request_id"
+    },
+    "pointcloud_import": {
+      "name": "name",
+      "base64": "base64",
+      "format": "format",
+      "confirm": "confirm",
+      "request_id": "request_id"
+    },
+    "raster_import": {
+      "name": "name",
+      "raster": "raster",
+      "crs": "crs",
+      "confirm": "confirm",
+      "request_id": "request_id"
+    },
+    "destructive_preflight": {
+      "dataset": "dataset",
+      "fields": "fields",
+      "target": "target",
+      "operation": "operation"
+    },
+    "workspace_list": {
+      "offset": "offset",
+      "limit": "limit",
+      "name_contains": "name_contains",
+      "fields": "fields",
+      "crs": "crs",
+      "geometry_type": "geometry_type"
+    },
+    "dataset_import": {
+      "name": "name",
+      "geojson": "geojson",
+      "crs": "crs",
+      "schema": "schema",
+      "confirm": "confirm",
+      "request_id": "request_id",
+      "source_kind": "source_kind",
+      "authorization_id": "authorization_id"
+    },
+    "dataset_describe": {
+      "dataset": "dataset"
+    },
+    "dataset_features": {
+      "dataset": "dataset",
+      "offset": "offset",
+      "limit": "limit",
+      "fields": "fields",
+      "include_geometry": "include_geometry"
+    },
+    "task_plan": {
+      "goal": "goal",
+      "steps": "steps",
+      "exports": "exports",
+      "request_id": "request_id"
+    },
+    "task_execute": {
+      "task_id": "task_id",
+      "plan_digest": "plan_digest",
+      "confirm": "confirm",
+      "authorization_id": "authorization_id",
+      "resume": "resume"
+    },
+    "task_get": {
+      "task_id": "task_id",
+      "verify": "verify"
+    },
+    "evidence_get": {
+      "evidence_id": "evidence_id",
+      "section": "section",
+      "offset": "offset",
+      "limit": "limit"
+    },
+    "artifact_read": {
+      "uri": "uri",
+      "offset": "offset",
+      "max_chars": "max_chars"
+    },
+    "workflow_route": {
+      "intent": "intent"
+    },
+    "gis_call": {
+      "verb": "verb",
+      "arguments": "arguments"
+    },
+    "task_dry_run": {
+      "goal": "goal",
+      "steps": "steps"
+    },
+    "artifact_view": {
+      "uri": "uri",
+      "pointer": "pointer",
+      "cursor": "cursor",
+      "limit": "limit",
+      "view": "view"
+    },
+    "authorization_grant": {
+      "target_prefix": "target_prefix",
+      "verbs": "verbs",
+      "max_writes": "max_writes",
+      "ttl_seconds": "ttl_seconds",
+      "confirm": "confirm",
+      "request_id": "request_id"
+    },
+    "authorization_get": {
+      "authorization_id": "authorization_id"
+    },
+    "authorization_revoke": {
+      "authorization_id": "authorization_id"
+    }
+  },
+  "enums": {
+    "gis_buffer": {
+      "unit": {
+        "m": "metres"
+      }
+    },
+    "gis_measure": {
+      "operation": {
+        "area": "area_square_metres",
+        "length": "length_metres",
+        "distance": "distance_metres"
+      }
+    },
+    "gis_overlay": {
+      "operation": {
+        "intersection": "intersect_polygons",
+        "difference": "subtract_overlay"
+      }
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "format": "a3-protocol-v1",
+  "tool_profile": "compact",
+  "surfaces": [
+    "canonical",
+    "surface-v1"
+  ],
+  "models": [
+    {
+      "slot": "A",
+      "base_url": "https://api.deepseek.com",
+      "model": "deepseek-flash",
+      "catalog_name": "DeepSeek-V4.1-Flash",
+      "key_env": "DEEPSEEK_API_KEY"
+    },
+    {
+      "slot": "B",
+      "base_url": "https://api.deepseek.com",
+      "model": "deepseek-v4-pro",
+      "catalog_name": "DeepSeek-V4-Pro",
+      "key_env": "DEEPSEEK_API_KEY"
+    }
+  ],
+  "identity_policy": "Pin catalog bytes and requested/returned model IDs; retain system_fingerprint each response; stop on unexpected returned ID or within-model fingerprint drift. Provider offers no immutable snapshot guarantee.",
+  "request": {
+    "temperature": 0,
+    "thinking": {
+      "type": "disabled"
+    },
+    "max_tokens": 2048
+  },
+  "max_turns": 8,
+  "max_tool_calls": 24,
+  "max_request_chars": 180000,
+  "timeout_seconds": 60,
+  "main_trajectories": 96,
+  "max_infrastructure_reruns": 9,
+  "max_total_trajectories": 105,
+  "retry_policy": "Only network/timeout/5xx with no provider/model output anywhere in that trajectory. Never rerun model errors, partial output or unknown provider output. All attempts retained.",
+  "stop_http_statuses": [
+    401,
+    402,
+    403,
+    429
+  ],
+  "schedule_seed": 20261113,
+  "adoption": {
+    "selection_improvement_percentage_points": 5,
+    "recovery_must_not_decrease": true,
+    "require_complete_96": true,
+    "require_no_model_selection_regression": true
+  },
+  "selection": "First substantive dry-run proposal: compare canonical verbs positionally with frozen choices; missing/extra slots are wrong. Discovery calls excluded. Direct operation calls count as substantive choices but cannot satisfy preview-only completion.",
+  "success": "One complete canonical dry-run call matches frozen argument constraints and frozen result subset. No writes. Earlier failed proposals are retained; host stops at first matching complete preview. Literal target names may vary; inputs, enum/numeric/field arguments and dependency references must match.",
+  "first_try": "First substantive proposal passes the frozen oracle with no previous model tool errors.",
+  "recovery": "Frozen injected-error tasks plus tasks with an observed tool error; denominator zero is null.",
+  "scope": "24 bounded GIS preview tasks, 6 synthetic immutable fixture inputs, no external GIS services or production writes; comparison is two DeepSeek models, not cross-provider generalization.",
+  "system_prompt": "Use the provided GIS tools to complete the user task. All tasks require actual preview evidence, including read-only operations. Submit a complete multi-step task as ONE preview chain. Discover schemas as needed. Do not write datasets, plans, grants or external resources. Do not claim success without tool evidence. The host ends the trajectory when the complete preview satisfies the task. Synthetic task fixtures have already been imported by the host."
+}

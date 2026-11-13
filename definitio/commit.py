@@ -1,0 +1,198 @@
+"""Version-bound commit policy and staged file-artifact publication.
+
+Policy only: the judging lives in definitio.verifier, the computing in the operators.
+A file artifact is staged, verified, then published atomically; a failed verification
+cleans the staging file and publishes nothing.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+from pathlib import Path
+
+from .model import GISFault, canonical, digest, name_ok, now, require
+from .store import identifier
+from . import verifier
+
+WRITE_SCOPE_FORMAT = "definitio-write-scope-v1"
+ARTIFACT_FORMAT = "definitio-file-artifact-v1"
+COMMIT_STATES = ("committed", "rejected_state_changed", "pending_confirmation")
+
+
+def artifact_name(name):
+    require(isinstance(name, str) and name.endswith(".geojson"), message="文件产物名须以 .geojson 结尾")
+    require("/" not in name and "\\" not in name and ".." not in name,
+            message="文件产物名不得含路径分隔或上跳", target=name)
+    name_ok(name[:-len(".geojson")])
+    return name
+
+
+def logical_target(step):
+    """The name a step actually writes, resolved the same way at plan time and at commit time."""
+    from .vector_extra import write_target
+    if step["verb"] == "gis_append_dataset":
+        return step.get("head_bindings", {}).get("target")
+    if step["verb"] == "gis_add_layer_from_catalog":
+        return step.get("head_bindings", {}).get("map")
+    return write_target(step["verb"], step["parameters"])
+
+
+def planned_destructions(task):
+    """Inputs the plan itself declares it will destroy; their absence is an authorized effect."""
+    return {target["target"] for target in task.get("write_scope", {}).get("dataset_targets", [])
+            if target["mode"] == "destroy"}
+
+
+def step_writes(task):
+    """Actual dataset-side writes of a task, derived from its committed steps."""
+    writes = []
+    for step in task["steps"]:
+        if step["verb"] == "gis_delete_dataset":
+            if step["state"] == "COMMITTED":
+                writes.append({"kind": "dataset_destroy", "target": step["parameters"]["dataset"]})
+            continue
+        if step.get("output_ref"):
+            writes.append({"kind": "dataset", "target": logical_target(step)})
+    return writes
+
+
+def bind_write_scope(steps, exports, workspace):
+    targets = []
+    for step in steps:
+        if step["verb"] == "gis_delete_dataset":
+            targets.append({"step": step["index"], "verb": step["verb"],
+                            "target": step["parameters"]["dataset"], "mode": "destroy", "kind": "dataset_destroy"})
+            continue
+        target = logical_target(step)
+        if not target:
+            continue
+        mode = ("advance_head" if step["verb"] in ("gis_append_dataset", "gis_add_layer_from_catalog") else
+                "rename" if step["verb"] == "gis_rename_dataset" else "create")
+        targets.append({"step": step["index"], "verb": step["verb"], "target": target, "mode": mode, "kind": "dataset"})
+    files = []
+    for item in exports or []:
+        require(isinstance(item, dict) and set(item) == {"step", "name", "format"},
+                message="exports 每项须仅含 step/name/format")
+        require(type(item["step"]) is int and 1 <= item["step"] <= len(steps), message="exports.step 越界")
+        require(item["format"] == "geojson", "NOT_SUPPORTED", "文件产物首版只开放 geojson")
+        artifact_name(item["name"])
+        files.append({"step": item["step"], "name": item["name"], "format": item["format"]})
+    require(len({f["name"] for f in files}) == len(files), message="exports 名称重复")
+    return {"format": WRITE_SCOPE_FORMAT, "dataset_targets": targets, "file_artifacts": files,
+            "workspace": str(workspace)}
+
+
+def evaluate_binding(task, store, from_step=1):
+    """Three-state gate: refuse a stale plan with reasons, or leave it pending confirmation.
+
+    from_step lets a resume skip targets that its own already-committed steps occupy.
+    """
+    statuses = [verifier.version_status(store, ref) for ref in task["input_snapshot_refs"]]
+    changed_inputs = [{"id": s["id"], "planned": s["planned"], "actual": s["actual"], "reason": s["reason"]}
+                      for s in statuses if s["changed"]]
+    changed_targets, reasons = [], []
+    with store.connect() as db:
+        for target in task.get("write_scope", {}).get("dataset_targets", []):
+            if target["mode"] != "create" or target["step"] < from_step:
+                continue
+            row = db.execute("SELECT dataset_id FROM dataset_heads WHERE name=?", (target["target"],)).fetchone()
+            if row:
+                changed_targets.append({"target": target["target"], "occupied_by": row[0]})
+    if changed_inputs:
+        reasons.append(f"{len(changed_inputs)} 个输入版本在规划后已变化")
+    if changed_targets:
+        reasons.append(f"{len(changed_targets)} 个目标名称在规划后已被占用")
+    return {"state": "rejected_state_changed" if reasons else "pending_confirmation", "reasons": reasons,
+            "changed_inputs": changed_inputs, "changed_targets": changed_targets}
+
+
+def artifact_paths(data_dir):
+    root = Path(data_dir) / "artifacts"
+    return root, root / ".staging"
+
+
+def dataset_payload(dataset):
+    return {**dataset["geojson"], "definitio": {
+        "crs": dataset["crs"], "schema": dataset["fields"], "fingerprint": dataset["fingerprint"],
+        "semantic": dataset.get("semantic"),
+        "format": "GeoJSON-compatible snapshot; projected CRS retained; reproject to EPSG:4326 for RFC7946"}}
+
+
+def verify_staged(path, expected_sha256, expected_fingerprint, expected_count):
+    raw = path.read_bytes()
+    actual = hashlib.sha256(raw).hexdigest()
+    if actual != expected_sha256:
+        return {"ok": False, "reason": "staged_bytes_sha256_mismatch"}
+    try:
+        document = json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeError) as exc:
+        return {"ok": False, "reason": f"staged_not_reopenable: {exc}"}
+    header = document.get("definitio", {})
+    if header.get("fingerprint") != expected_fingerprint:
+        return {"ok": False, "reason": "staged_fingerprint_mismatch"}
+    if len(document.get("features", [])) != expected_count:
+        return {"ok": False, "reason": "staged_feature_count_mismatch"}
+    return {"ok": True, "sha256": actual, "feature_count": expected_count}
+
+
+def publish_file_artifact(store, data_dir, *, dataset, name, request_key, task_id, step_id):
+    artifact_name(name)
+    require(isinstance(request_key, str) and request_key, message="request_key 须为非空字符串")
+    existing = store.file_artifact_by_key(request_key)
+    if existing is not None:
+        readback = readback_file_artifact(data_dir, existing)
+        require(readback["confirmed"], "TARGET_STATE_UNKNOWN", "既有文件产物回读失败；不重复发布",
+                artifact=existing["id"])
+        return {"artifact": existing, "replayed": True}
+    require(store.file_artifact_by_name(name) is None, "ALREADY_EXISTS", "文件产物名已存在；不会覆盖", target=name)
+    root, staging = artifact_paths(data_dir)
+    staging.mkdir(parents=True, exist_ok=True)
+    staged = staging / f"{identifier('stage')}.tmp"
+    payload = canonical(dataset_payload(dataset)).encode("utf-8")
+    expected = hashlib.sha256(payload).hexdigest()
+    try:
+        staged.write_bytes(payload)
+        checked = verify_staged(staged, expected, dataset["fingerprint"], dataset["feature_count"])
+        require(checked["ok"], "BACKEND_ERROR", "暂存产物校验未通过；已清理暂存", reason=checked.get("reason"))
+        root.mkdir(parents=True, exist_ok=True)
+        published = root / name
+        require(not published.exists(), "ALREADY_EXISTS", "文件产物名已存在；不会覆盖", target=name)
+        os.replace(staged, published)
+        try:
+            record = {"id": identifier("fa"), "request_key": request_key, "name": name, "task_id": task_id,
+                      "step_id": step_id, "dataset_id": dataset["id"], "sha256": expected,
+                      "sha256_dataset": dataset["fingerprint"], "bytes": len(payload), "created_at": now(),
+                      "format": ARTIFACT_FORMAT, "path": str(published)}
+            record["uri"] = f"definitio://artifacts/{record['id']}"
+            store.save_file_artifact(record)
+            readback = readback_file_artifact(data_dir, record)
+            require(readback["confirmed"], "TARGET_STATE_UNKNOWN", "发布后回读未确认；不得报成功", artifact=record["id"])
+        except Exception:
+            published.unlink(missing_ok=True)
+            raise
+        return {"artifact": record, "replayed": False}
+    finally:
+        if staged.exists():
+            staged.unlink()
+
+
+def readback_file_artifact(data_dir, record):
+    root, _ = artifact_paths(data_dir)
+    path = root / record["name"]
+    if not path.exists():
+        return {"confirmed": False, "reason": "published_file_missing"}
+    raw = path.read_bytes()
+    actual = hashlib.sha256(raw).hexdigest()
+    if actual != record["sha256"] or len(raw) != record["bytes"]:
+        return {"confirmed": False, "reason": "published_bytes_mismatch"}
+    try:
+        document = json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeError) as exc:
+        return {"confirmed": False, "reason": f"published_not_reopenable: {exc}"}
+    header = document.get("definitio", {})
+    if header.get("fingerprint") != record["sha256_dataset"]:
+        return {"confirmed": False, "reason": "published_fingerprint_mismatch"}
+    return {"confirmed": True, "sha256": actual, "feature_count": len(document.get("features", [])),
+            "fields": header.get("schema"), "crs": (header.get("crs") or {}).get("code"),
+            "axis_order": (header.get("crs") or {}).get("axis_order")}
