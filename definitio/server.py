@@ -164,7 +164,8 @@ def create_app(data_dir=None, ui=True):
                 return Response(memory.read(), media_type="image/tiff", headers={"Content-Disposition": f'attachment; filename="{d["id"]}.tif"'})
         # GeoJSON RFC 7946 requires WGS84. Preserve projected data as a clearly
         # labelled extended document instead of silently mislabelling coordinates.
-        payload = {**d["geojson"], "definitio": {"crs": d["crs"], "schema": d["fields"], "fingerprint": d["fingerprint"],
+        from .semantics import crs_projection
+        payload = {**d["geojson"], "definitio": {"crs": crs_projection(d["crs"]), "schema": d["fields"], "fingerprint": d["fingerprint"],
                    "semantic": d.get("semantic"),
                    "format": "GeoJSON-compatible snapshot; projected CRS retained; reproject to EPSG:4326 for RFC7946"}}
         if d["crs"]["code"] != "EPSG:4326":

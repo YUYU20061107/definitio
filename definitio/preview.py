@@ -22,8 +22,9 @@ def value_summary(value):
 
 
 def dataset_summary(d):
+    from .semantics import crs_projection
     return {k: d[k] for k in ("fields", "feature_count", "geometry_types", "bounds", "kind", "grid", "point_count", "point_dimensions") if k in d} | {
-        "crs": {k: d["crs"][k] for k in ("code", "definition_hash", "projected", "unit", "metres_per_unit", "axis_order")}}
+        "crs": crs_projection(d["crs"])}
 
 
 def preview(runtime, goal, steps):

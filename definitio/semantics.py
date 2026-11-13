@@ -7,6 +7,17 @@ from __future__ import annotations
 
 HEADER_FORMAT = "definitio-semantic-object-v1"
 OBJECT_TYPES = {"vector": "vector_dataset", "raster": "raster_dataset", "pointcloud": "pointcloud_dataset"}
+CRS_PROJECTION_KEYS = ("code", "definition_hash", "projected", "unit", "metres_per_unit",
+                       "coordinate_order", "axis_policy", "axis_order")
+
+
+def crs_projection(crs):
+    """The single canonical CRS projection shared by preview, descriptor and artifact/export.
+
+    The full WKT definition stays available through the metadata URI; every published
+    surface projects the same identity keys, including axis_order and axis_policy.
+    """
+    return {key: crs[key] for key in CRS_PROJECTION_KEYS}
 
 
 def _split_top_level(text):

@@ -113,8 +113,9 @@ def artifact_paths(data_dir):
 
 
 def dataset_payload(dataset):
+    from .semantics import crs_projection
     return {**dataset["geojson"], "definitio": {
-        "crs": dataset["crs"], "schema": dataset["fields"], "fingerprint": dataset["fingerprint"],
+        "crs": crs_projection(dataset["crs"]), "schema": dataset["fields"], "fingerprint": dataset["fingerprint"],
         "semantic": dataset.get("semantic"),
         "format": "GeoJSON-compatible snapshot; projected CRS retained; reproject to EPSG:4326 for RFC7946"}}
 

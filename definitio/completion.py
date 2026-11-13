@@ -120,7 +120,7 @@ def resource_summary(kind, payload, crs):
             "empty_geometry_count": 0, "invalid_geometry_count": 0, "fingerprint": digest({"kind": kind, "resource": payload, "crs": crs["definition_hash"]})}
 
 
-def register_resource(runtime, a, db=None):
+def register_resource(runtime, a, db=None, header_context=None):
     kind, payload = a["kind"], copy.deepcopy(a["properties"])
     if kind == "map":
         require(set(payload) == {"crs", "extent", "width", "height", "purpose"}, message="map 需显式 crs/extent/width/height/purpose")
@@ -145,7 +145,8 @@ def register_resource(runtime, a, db=None):
         require(lic.get("kind") == "license" and lic["resource"]["dataset"] == d["id"] and lic["resource"]["source_fingerprint"] == d["fingerprint"], "LICENSE_BLOCKED", "许可证据与数据快照不一致")
         payload = {"storage": {"uri": d["id"]}, "source_fingerprint": d["fingerprint"], "evidence_ref": lic["id"], "commercial_use": lic["resource"]["commercial_use"]}
         crs = d["crs"]
-    return runtime.store.insert_resource(a["name"], kind, payload, crs, {"kind": "managed_resource_registration"}, db)
+    return runtime.store.insert_resource(a["name"], kind, payload, crs, {"kind": "managed_resource_registration"}, db,
+                                         header_context=header_context)
 
 
 def licensed_dataset(runtime, catalog, purpose, db=None):

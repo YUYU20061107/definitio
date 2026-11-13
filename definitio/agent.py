@@ -284,9 +284,10 @@ class AgentService:
         return task, False
 
     def descriptor(self, d):
+        from .semantics import crs_projection
         result = {"id": d["id"], "name": d.get("logical_name", d["name"]), "fingerprint": d["fingerprint"], "feature_count": d["feature_count"],
                 "fields": d["fields"], "geometry_types": d["geometry_types"], "bounds": d["bounds"],
-                "crs": {k: d["crs"][k] for k in ("code", "definition_hash", "projected", "unit", "metres_per_unit", "coordinate_order", "axis_order")},
+                "crs": crs_projection(d["crs"]),
                 "source": d["source"], "semantic": d.get("semantic"), "resource_uri": f"definitio://datasets/{d['id']}",
                 "geojson_uri": f"definitio://datasets/{d['id']}/geojson", "metadata_uri": f"definitio://datasets/{d['id']}/metadata"}
         if d.get("kind") == "raster":
@@ -408,6 +409,10 @@ class AgentService:
             task = self.runtime.execute(task["id"], task["plan_digest"], confirmed)
         return self._task_reply(task, replayed)
 
+    def _import_header(self, verb, parameters, authorization=None):
+        return {"operation": {"verb": verb, "vid": None, "parameters": parameters, "task_id": None, "step_id": None},
+                "inputs": [], "scope": {"workspace": str(self.store.path.parent), "authorization": authorization}}
+
     def _control(self, name, a, session=None):
         if name == "workspace_resource":
             request_digest = digest({"tool": name, "arguments": a})
@@ -418,7 +423,8 @@ class AgentService:
             from .completion import register_resource
             # This control requires explicit confirmation; it accepts no scoped grant.
             with self.store.lock, self.store.connect() as db:
-                d = register_resource(self.runtime, a, db)
+                d = register_resource(self.runtime, a, db,
+                                      header_context=self._import_header(name, {"kind": a["kind"], "name": a["name"]}))
                 self._save_request(db, a["request_id"], request_digest, "dataset", d["id"])
             return success({"dataset": self.descriptor(d), "replayed": False})
         if name == "pointcloud_import":
@@ -430,7 +436,10 @@ class AgentService:
             from .pointcloud import snapshot
             payload, crs = snapshot(a["base64"], a["format"])
             with self.store.connect() as db:
-                d = self.store.insert_pointcloud(a["name"], payload, crs, {"kind": "agent_pointcloud_import"}, db)
+                d = self.store.insert_pointcloud(a["name"], payload, crs, {"kind": "agent_pointcloud_import"}, db,
+                                                 header_context=self._import_header(name, {
+                                                     "name": a["name"], "format": a["format"], "crs": crs["code"],
+                                                     "point_count": payload["info"]["point_count"]}, a.get("authorization_id")))
                 self._save_request(db, a["request_id"], request_digest, "dataset", d["id"])
             return success({"dataset": self.descriptor(d), "replayed": False})
         if name == "raster_import":
@@ -442,7 +451,10 @@ class AgentService:
             from .raster import validate_raster
             raster, crs = validate_raster(a["raster"], a["crs"])
             with self.store.connect() as db:
-                d = self.store.insert_raster(a["name"], raster, crs, {"kind": "agent_raster_import"}, db)
+                d = self.store.insert_raster(a["name"], raster, crs, {"kind": "agent_raster_import"}, db,
+                                             header_context=self._import_header(name, {
+                                                 "name": a["name"], "crs": crs["code"], "dtype": raster["dtype"],
+                                                 "width": len(raster["data"][0]), "height": len(raster["data"])}, a.get("authorization_id")))
                 self._save_request(db, a["request_id"], request_digest, "dataset", d["id"])
             return success({"dataset": self.descriptor(d), "replayed": False})
         if name == "destructive_preflight":
@@ -492,7 +504,11 @@ class AgentService:
             if old:
                 return success({"dataset": self.descriptor(self.store.dataset(old["reference"])), "replayed": True})
             with self.store.connect() as db:
-                d = self.store.insert_dataset(a["name"], gj, crs, schema, {"kind": a.get("source_kind", "agent_import")}, db)
+                d = self.store.insert_dataset(a["name"], gj, crs, schema, {"kind": a.get("source_kind", "agent_import")}, db,
+                                              header_context=self._import_header(name, {
+                                                  "name": a["name"], "crs": crs["code"],
+                                                  "source_kind": a.get("source_kind", "agent_import"),
+                                                  "feature_count": len(gj["features"])}, a.get("authorization_id")))
                 self._save_request(db, a["request_id"], request_digest, "dataset", d["id"])
             return success({"dataset": self.descriptor(d), "replayed": False})
         if name == "dataset_features":
@@ -676,10 +692,12 @@ class AgentService:
                 return d["pointcloud"]
             if parts[1:] == ["raster"]:
                 require(d.get("kind") == "raster", "NOT_SUPPORTED", "该数据集不是栅格")
-                return {**d["raster"], "crs": d["crs"], "fingerprint": d["fingerprint"]}
+                from .semantics import crs_projection
+                return {**d["raster"], "crs": crs_projection(d["crs"]), "fingerprint": d["fingerprint"]}
             if parts[1:] == ["geojson"]:
                 require(d.get("kind", "vector") == "vector", "NOT_SUPPORTED", "该数据集不是矢量")
-                return {**d["geojson"], "definitio": {"crs": d["crs"], "schema": d["fields"], "fingerprint": d["fingerprint"],
+                from .semantics import crs_projection
+                return {**d["geojson"], "definitio": {"crs": crs_projection(d["crs"]), "schema": d["fields"], "fingerprint": d["fingerprint"],
                                                        "semantic": d.get("semantic")}}
             if len(parts) == 3 and parts[1] == "geometry" and parts[2].isdigit():
                 index = int(parts[2])
