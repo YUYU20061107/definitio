@@ -392,7 +392,7 @@ class Runtime:
             elif step["verb"] == "gis_delete_dataset":
                 self.consume_delete_preflight(p, inputs[0], db)
                 impact = self.store.destroy_dataset(inputs[0]["id"], db, task["id"])
-                proposal = {"lifecycle": "destroy", "result": {"destroyed": True, "dataset": inputs[0]["id"], "before_fingerprint": before[0], "impact": impact}, "checks": {"dataset_absent_readback": True}}
+                proposal = {"lifecycle": "destroy", "result": {"destroyed": True, "dataset": inputs[0]["id"], "before_fingerprint": before[0], "impact": impact}}
             elif step["verb"] in COMPLETION_SPECS:
                 from .completion import compute as completion_compute
                 proposal = completion_compute(self, step["verb"], p, inputs, db)
@@ -416,7 +416,7 @@ class Runtime:
                     header_context=header_context)
                 readback = self.store.dataset(output["id"], db)
                 require(self.store.verify_snapshot(readback) == output["fingerprint"], "TARGET_STATE_UNKNOWN", "资源读回摘要不同")
-                readback_checks = [{"id": "native_resource_readback", "passed": True, "method": "native_backend_and_sqlite_sha256"}]
+                readback_checks = []
             elif "geojson" in proposal:
                 gj, crs, schema = validate_geojson(proposal["geojson"], proposal["crs"], proposal["schema"])
                 source = {"kind": "derived", "task_id": task["id"], "step_id": step["id"], "evidence_ref": evidence_id,
@@ -442,7 +442,7 @@ class Runtime:
                                                   header_context=header_context)
                 readback = self.store.dataset(output["id"], db)
                 require(self.store.verify_snapshot(readback) == fingerprint(raster, crs), "TARGET_STATE_UNKNOWN", "栅格读回指纹不一致")
-                readback_checks = [{"id": "grid_and_pixels_readback", "passed": readback["raster"] == raster, "method": "sqlite_exact_raster_snapshot"}]
+                readback_checks = []
             elif "pointcloud" in proposal:
                 from .pointcloud import fingerprint
                 output = self.store.insert_pointcloud(target, proposal["pointcloud"], proposal["crs"],
@@ -450,7 +450,7 @@ class Runtime:
                                                      header_context=header_context)
                 readback = self.store.dataset(output["id"], db)
                 require(self.store.verify_snapshot(readback) == fingerprint(proposal["pointcloud"], proposal["crs"]), "TARGET_STATE_UNKNOWN", "点云字节读回不一致")
-                readback_checks = [{"id": "pointcloud_bytes_readback", "passed": readback["pointcloud"] == proposal["pointcloud"], "method": "sqlite_exact_bytes_and_metadata"}]
+                readback_checks = []
             destroyed = proposal.get("lifecycle") == "destroy"
             after = [None] if destroyed else [self.store.verify_snapshot(self.store.dataset(d["id"], db)) for d in inputs]
             require(destroyed or before == after, "TARGET_STATE_UNKNOWN", "输入在执行中发生变化")
@@ -471,6 +471,8 @@ class Runtime:
                 actual_writes=actual_writes, authorization=task["governance_state"],
                 workspace=str(self.store.path.parent), file_artifact=None))
             verifier.enforce(verification)
+            if any(k in proposal for k in ("raster", "pointcloud", "resource")) or proposal.get("lifecycle") in ("destroy", "rename"):
+                checks.extend(verifier.legacy_checks(verification))
             task.setdefault("actual_writes", []).extend(actual_writes)
             evidence = {"id": evidence_id, "task_id": task["id"], "step_id": step["id"], "attempt_id": step["attempt_id"],
                         "created_at": now(), "verb": step["verb"], "vid": step["vid"], "level": step["level"],

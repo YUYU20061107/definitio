@@ -124,7 +124,7 @@ def preview(runtime, goal, steps):
                 item["result_summary"] = value_summary(proposal.get("result"))
             verification = verifier.run(verifier.context(
                 stage="preview", verb=step["verb"], vid=step["vid"], parameters=p, inputs=inputs,
-                proposal=proposal, output=None, store=runtime.store, db=None,
+                proposal=proposal, output=outputs.get(previous) if previous else None, store=runtime.store, db=None,
                 planned_inputs=task["input_snapshot_refs"], write_scope=task.get("write_scope"),
                 actual_writes=[], authorization=None, workspace=str(runtime.store.path.parent),
                 file_artifact=None))

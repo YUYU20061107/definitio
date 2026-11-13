@@ -150,6 +150,18 @@ def output_reopenable(ctx):
                            "内存预演不能确认持久化后可重开", None, "in_memory_only")
         return finding(name, "输出可重新打开且结构合预期", "本步骤为只读，无数据集输出",
                        "只读结果的重开由工件 URI 承担", True, "read_only_step")
+    if ctx["stage"] == "preview":
+        problems = []
+        if proposal is not None and "geojson" in proposal:
+            if output["fields"] != proposal["schema"]:
+                problems.append("预演输出字段结构与提案不符")
+            if output["crs"]["definition_hash"] != proposal["crs"]["definition_hash"]:
+                problems.append("预演输出 CRS 与提案不符")
+            if output["fingerprint"] != logical_fingerprint(proposal["geojson"], proposal["crs"], proposal["schema"]):
+                problems.append("预演输出逻辑指纹与提案不一致")
+        return finding(name, "内存预演输出的结构核对", "结构合预期" if not problems else "；".join(problems),
+                       "内存预演不能确认持久化后可重开", not problems, "in_memory_structural_readback",
+                       problems=problems)
     if store is None:
         return finding(name, "输出可重新打开且结构合预期", "无工作区连接", "无法重开持久记录", None,
                        "insufficient_context")
@@ -198,70 +210,197 @@ class _InvariantStop(Exception):
 
 
 def operation_readback_invariants(ctx):
-    """Operator-specific readback invariants, migrated verbatim from verification.py."""
+    """Operator-specific readback invariants for all four data kinds.
+
+    The vector proposal-layer checks are migrated verbatim from verification.py.
+    Raster/pointcloud/resource/lifecycle readback lists that used to be inline in
+    runtime are judged here, by the single verifier. A check may be True, False
+    (hard stop) or None (honestly unconfirmed; never a fake pass).
+    """
     name = "operation_readback_invariants"
     verb, parameters, inputs = ctx["verb"], ctx["parameters"], ctx["inputs"]
-    output, proposal = ctx["output"], ctx["proposal"]
-    if output is None or proposal is None or "geojson" not in proposal:
-        return finding(name, "算子级读回不变量", "无矢量输出提案可比对（只读步骤或复核路径）",
+    output, proposal, store = ctx["output"], ctx["proposal"], ctx["store"]
+    if output is None and proposal is None:
+        return finding(name, "算子级读回不变量", "无输出也无提案可比对（只读复核路径）",
                        "原始提案不保留在工件中；提交时的判定见 evidence.postcondition_checks",
-                       True, "not_applicable", checks=[], failed_check=None)
-    checks = []
+                       True, "not_applicable", checks=[], failed_check=None, unconfirmed_checks=[])
+    checks, unconfirmed = [], []
 
     def check(label, passed, method="readback_exact_structure"):
-        checks.append({"id": label, "passed": bool(passed), "method": method})
-        if not passed:
+        checks.append({"id": label, "passed": None if passed is None else bool(passed), "method": method})
+        if passed is False:
             raise _InvariantStop(label)
 
+    def unconfirm(label, reason, method="insufficient_context"):
+        checks.append({"id": label, "passed": None, "method": method})
+        unconfirmed.append({"id": label, "reason": reason})
+
+    persisted = store is not None and ctx["stage"] != "preview"
     stopped = None
     try:
-        check("schema_readback", output["fields"] == proposal["schema"])
-        check("crs_readback", output["crs"]["definition_hash"] == proposal["crs"]["definition_hash"])
-        if verb in ("gis_copy_dataset", "gis_convert_format"):
-            check("copy_logical_content", output["fingerprint"] == inputs[0]["fingerprint"])
-        if verb == "gis_merge_datasets":
-            check("merge_count_readback", output["feature_count"] == sum(d["feature_count"] for d in inputs))
-        if verb == "gis_append_dataset":
-            check("append_count_readback", output["feature_count"] == sum(d["feature_count"] for d in inputs))
-            expected = inputs[1]["geojson"]["features"] + inputs[0]["geojson"]["features"]
-            check("append_multiset_readback", output["fingerprint"] == logical_fingerprint({"features": expected}, output["crs"], output["fields"]))
-        if verb == "gis_delete_field":
-            check("removed_fields_absent", not set(parameters["fields"]) & {f["name"] for f in output["fields"]})
-            check("delete_field_count", output["feature_count"] == inputs[0]["feature_count"])
-        if verb == "gis_dissolve":
-            source = inputs[0]
-            fields = parameters["fields"]
-            expected_schema = [next(f for f in source["fields"] if f["name"] == key) for key in fields]
-            check("dissolve_fields_only", output["fields"] == expected_schema)
-            groups, records = defaultdict(list), defaultdict(list)
-            for f, geom in zip(source["geojson"]["features"], geometries(source)):
-                key = exact_key([f["properties"][k] for k in fields])
-                groups[key].append(geom)
-                records[key].append(f["id"])
-            actual = {}
-            for f in output["geojson"]["features"]:
-                key = exact_key([f["properties"][k] for k in fields])
-                check("unique_output_group", key not in actual)
-                actual[key] = shape(f["geometry"])
-            check("group_key_set_readback", set(actual) == set(groups))
-            check("group_count_readback", len(actual) == output["feature_count"] == len(groups))
-            for key, source_geometries in groups.items():
-                geom = actual[key]
-                check("multipolygon_per_group", geom.geom_type == "MultiPolygon")
-                check("group_geometry_readback", geom.equals(shapely.union_all(source_geometries)), "same_kernel_geos_topological_equals")
-            manifest = proposal.get("group_manifest", [])
-            manifest_keys = [exact_key([entry["group"][k] for k in fields]) for entry in manifest]
-            check("manifest_group_keys", len(manifest_keys) == len(set(manifest_keys)) and set(manifest_keys) == set(groups))
-            check("manifest_membership", all(sorted(entry["source_records"]) == sorted(records[key]) for key, entry in zip(manifest_keys, manifest)))
+        if proposal is not None and "geojson" in proposal and output is not None:
+            check("schema_readback", output["fields"] == proposal["schema"])
+            check("crs_readback", output["crs"]["definition_hash"] == proposal["crs"]["definition_hash"])
+            if verb in ("gis_copy_dataset", "gis_convert_format"):
+                check("copy_logical_content", output["fingerprint"] == inputs[0]["fingerprint"])
+            if verb == "gis_merge_datasets":
+                check("merge_count_readback", output["feature_count"] == sum(d["feature_count"] for d in inputs))
+            if verb == "gis_append_dataset":
+                check("append_count_readback", output["feature_count"] == sum(d["feature_count"] for d in inputs))
+                expected = inputs[1]["geojson"]["features"] + inputs[0]["geojson"]["features"]
+                check("append_multiset_readback", output["fingerprint"] == logical_fingerprint({"features": expected}, output["crs"], output["fields"]))
+            if verb == "gis_delete_field":
+                check("removed_fields_absent", not set(parameters["fields"]) & {f["name"] for f in output["fields"]})
+                check("delete_field_count", output["feature_count"] == inputs[0]["feature_count"])
+            if verb == "gis_dissolve":
+                source = inputs[0]
+                fields = parameters["fields"]
+                expected_schema = [next(f for f in source["fields"] if f["name"] == key) for key in fields]
+                check("dissolve_fields_only", output["fields"] == expected_schema)
+                groups, records = defaultdict(list), defaultdict(list)
+                for f, geom in zip(source["geojson"]["features"], geometries(source)):
+                    key = exact_key([f["properties"][k] for k in fields])
+                    groups[key].append(geom)
+                    records[key].append(f["id"])
+                actual = {}
+                for f in output["geojson"]["features"]:
+                    key = exact_key([f["properties"][k] for k in fields])
+                    check("unique_output_group", key not in actual)
+                    actual[key] = shape(f["geometry"])
+                check("group_key_set_readback", set(actual) == set(groups))
+                check("group_count_readback", len(actual) == output["feature_count"] == len(groups))
+                for key, source_geometries in groups.items():
+                    geom = actual[key]
+                    check("multipolygon_per_group", geom.geom_type == "MultiPolygon")
+                    check("group_geometry_readback", geom.equals(shapely.union_all(source_geometries)), "same_kernel_geos_topological_equals")
+                manifest = proposal.get("group_manifest", [])
+                manifest_keys = [exact_key([entry["group"][k] for k in fields]) for entry in manifest]
+                check("manifest_group_keys", len(manifest_keys) == len(set(manifest_keys)) and set(manifest_keys) == set(groups))
+                check("manifest_membership", all(sorted(entry["source_records"]) == sorted(records[key]) for key, entry in zip(manifest_keys, manifest)))
+        if proposal is not None and proposal.get("lifecycle") == "destroy":
+            if not persisted:
+                unconfirm("dataset_absent_readback", "预演不销毁，持久层缺席无法核对")
+            else:
+                try:
+                    store.dataset(inputs[0]["id"], ctx["db"])
+                    absent = False
+                except GISFault:
+                    absent = True
+                check("dataset_absent_readback", absent, "database_readback_absence")
+        if output is not None and proposal is not None and proposal.get("lifecycle") == "rename":
+            check("rename_content_unchanged", output["fingerprint"] == inputs[0]["fingerprint"])
+            if not persisted:
+                unconfirm("rename_head_resolves", "预演不落库，逻辑头解析无法核对")
+                unconfirm("rename_old_name_gone", "预演不落库，旧名注销无法核对")
+            else:
+                head = store.dataset(parameters["new_name"], ctx["db"])
+                check("rename_head_resolves", head["id"] == inputs[0]["id"])
+                old_name = inputs[0].get("logical_name") or inputs[0]["name"]
+                try:
+                    store.dataset(old_name, ctx["db"])
+                    gone = False
+                except GISFault:
+                    gone = True
+                check("rename_old_name_gone", gone, "database_readback_absence")
+        if output is not None:
+            if "resource" in output:
+                _resource_readback(ctx, output, proposal, persisted, check, unconfirm)
+            elif output.get("kind") == "raster":
+                _raster_readback(ctx, output, proposal, persisted, check, unconfirm)
+            elif output.get("kind") == "pointcloud":
+                _pointcloud_readback(ctx, output, proposal, persisted, check, unconfirm)
+            elif "geojson" in output:
+                _vector_semantic_checks(ctx, output, proposal, check, unconfirm)
+        if output is None and proposal is not None and "result" in proposal:
+            _result_checks(ctx, proposal, check, unconfirm)
     except _InvariantStop as exc:
         stopped = exc.name
     except GISFault as exc:
         stopped = exc.code
         checks.append({"id": exc.code, "passed": False, "method": "geometry_readback"})
-    return finding(name, f"{verb} 的字段/CRS/计数/分组读回不变量",
+    limit = "GEOS 谓词与计算内核同源，不是独立几何 oracle"
+    if unconfirmed:
+        limit += "；" + "；".join(f"{item['id']}：{item['reason']}" for item in unconfirmed)
+    return finding(name, f"{verb} 的字段/CRS/计数/分组/四类数据读回不变量",
                    "全部不变量成立" if stopped is None else f"不变量 {stopped} 不成立",
-                   "GEOS 谓词与计算内核同源，不是独立几何 oracle", stopped is None,
-                   "readback_exact_structure", checks=checks, failed_check=stopped)
+                   limit, stopped is None,
+                   "readback_exact_structure", checks=checks, failed_check=stopped,
+                   unconfirmed_checks=unconfirmed)
+
+
+def _resource_readback(ctx, output, proposal, persisted, check, unconfirm):
+    store, inputs, parameters = ctx["store"], ctx["inputs"], ctx["parameters"]
+    if not persisted:
+        unconfirm("native_resource_readback", "预演不落库，资源记录无法重开")
+    else:
+        readback = store.dataset(output["id"], ctx["db"])
+        check("native_resource_readback", store.verify_snapshot(readback) == output["fingerprint"],
+              "native_backend_and_sqlite_sha256")
+    if proposal is not None and proposal.get("lifecycle") == "map_update":
+        before = inputs[1]["resource"]["layers"]
+        after = output["resource"]["layers"]
+        added = after[-1] if after else {}
+        expected_ref = inputs[0]["resource"]["storage"]["uri"]
+        check("resource_map_layers_accounting",
+              len(after) == len(before) + 1 and after[:-1] == before
+              and added.get("dataset_ref") == expected_ref
+              and added.get("catalog_id") == inputs[0]["id"]
+              and added.get("license_ref") == inputs[0]["resource"]["evidence_ref"],
+              "resource_layer_binding_readback")
+    if output.get("kind") == "image":
+        import base64
+        import hashlib
+        raw = base64.b64decode(output["resource"]["base64"], validate=True)
+        check("resource_image_integrity",
+              hashlib.sha256(raw).hexdigest() == output["resource"]["file_sha256"]
+              and output["resource"]["width"] == inputs[0]["resource"]["width"]
+              and output["resource"]["height"] == inputs[0]["resource"]["height"]
+              and output["resource"]["dpi"] == parameters["dpi"],
+              "sha256_bytes_and_map_property_readback")
+
+
+def _raster_readback(ctx, output, proposal, persisted, check, unconfirm):
+    from .raster import fingerprint
+    if persisted:
+        readback = ctx["store"].dataset(output["id"], ctx["db"])
+        check("grid_and_pixels_readback", readback["raster"] == output["raster"], "sqlite_exact_raster_snapshot")
+    elif proposal is not None and "raster" in proposal:
+        check("grid_and_pixels_readback", output["raster"] == proposal["raster"], "sqlite_exact_raster_snapshot")
+    else:
+        check("grid_and_pixels_readback", fingerprint(output["raster"], output["crs"]) == output["fingerprint"],
+              "sqlite_exact_raster_snapshot")
+    _raster_semantic_checks(ctx, output, proposal, check, unconfirm)
+
+
+def _pointcloud_readback(ctx, output, proposal, persisted, check, unconfirm):
+    from .pointcloud import fingerprint
+    if persisted:
+        readback = ctx["store"].dataset(output["id"], ctx["db"])
+        check("pointcloud_bytes_readback", readback["pointcloud"] == output["pointcloud"],
+              "sqlite_exact_bytes_and_metadata")
+    elif proposal is not None and "pointcloud" in proposal:
+        check("pointcloud_bytes_readback", output["pointcloud"] == proposal["pointcloud"],
+              "sqlite_exact_bytes_and_metadata")
+    else:
+        check("pointcloud_bytes_readback", fingerprint(output["pointcloud"], output["crs"]) == output["fingerprint"],
+              "sqlite_exact_bytes_and_metadata")
+    _pointcloud_semantic_checks(ctx, output, proposal, check, unconfirm)
+
+
+def _vector_semantic_checks(ctx, output, proposal, check, unconfirm):
+    """Per-verb vector postconditions; filled by the R2 rollout tasks."""
+
+
+def _raster_semantic_checks(ctx, output, proposal, check, unconfirm):
+    """Grid alignment, nodata accounting and pixel spot checks; filled by R2."""
+
+
+def _pointcloud_semantic_checks(ctx, output, proposal, check, unconfirm):
+    """Point count/dimension accounting; filled by R2."""
+
+
+def _result_checks(ctx, proposal, check, unconfirm):
+    """Read-only result postconditions (statistics/measure/validation/...); filled by R2."""
 
 
 CONTRACT_PREDICATES = (distance_unit_compatibility, input_version_binding, spatial_join_contract,
@@ -316,7 +455,7 @@ def legacy_checks(result):
     checks = []
     for found in result["found"]:
         if found["predicate"] == "operation_readback_invariants":
-            checks.extend(found["details"]["checks"])
+            checks.extend(check for check in found["details"]["checks"] if check["passed"] is not None)
         else:
             checks.append({"id": found["predicate"], "passed": found["passed"] is not False,
                            "method": found["method"]})
