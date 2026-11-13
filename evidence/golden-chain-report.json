@@ -162,6 +162,10 @@
       "sha256": "740d2b5db39ca035cd3b73c0175b94696c196a828e996b92de31611fcb1efb8a",
       "bytes": 25441
     },
+    "docs/ROLLOUT-DELIVERY-20261114.md": {
+      "sha256": "d40ae9a0a565c24a77e8be5fc2bb5a15829798b9619cce91d0584dcb01d1e0ae",
+      "bytes": 20540
+    },
     "docs/superpowers/plans/2026-11-13-golden-chain.md": {
       "sha256": "667c7405768fb2dfe26a908245fd229a9854358fd1aa57486399ed3a7410540b",
       "bytes": 112583
@@ -194,6 +198,14 @@
       "sha256": "c2a2c8bab0009f2aa13c5c0ae30c418eb27f0827c843e118b340ca92e05f8cad",
       "bytes": 51065
     },
+    "evidence/golden-chain-report.json": {
+      "sha256": "3173261783092da9c9f7637482116c9a52f5e1d1bbe0ae919ef37658c266166c",
+      "bytes": 201308
+    },
+    "evidence/golden-chain-report.md": {
+      "sha256": "982e14f2ec6e765fd2b0dec3523448d5c961f53dcd0179ad9c16401ef65ff696",
+      "bytes": 38272
+    },
     "evidence/regression-full-suite.log": {
       "sha256": "697a5ca3f51c8edcecfa81eb01c23ba61bf5a76e7c538f93c816d7571dbded4e",
       "bytes": 17106
@@ -202,9 +214,13 @@
       "sha256": "5dc1d72128f49165ffc0b642612c05f1e35610dae5935030807cd37f1cbe7fe7",
       "bytes": 61128
     },
-    "evidence/report-run.log": {
+    "evidence/report-reuse.log": {
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "bytes": 0
+    },
+    "evidence/report-run.log": {
+      "sha256": "1e52f155c2fbdaebff98929e253cefb96297a1974dcdf8eec2c1cf0257187b44",
+      "bytes": 4169
     },
     "examples/analytic-dissolve.geojson": {
       "sha256": "2450e119e9959b8338ba31818cbe099048be2f8a1d53da678573e0629ebc6268",
@@ -451,15 +467,22 @@
       "bytes": 24032
     }
   },
-  "file_count": 108,
+  "file_count": 112,
   "changes": {
     "baseline_commit": "c6d41ba",
     "added": [
+      "docs/ROLLOUT-DELIVERY-20261114.md",
       "docs/superpowers/plans/2026-11-14-rollout.md",
       "evidence/baseline-full-suite.log",
       "evidence/baseline-full-suite.xml",
+      "evidence/golden-chain-report.json",
+      "evidence/golden-chain-report.md",
+      "evidence/regression-full-suite.log",
+      "evidence/regression-full-suite.xml",
+      "evidence/report-run.log",
       "tests/test_rollout_commit_preview.py",
       "tests/test_rollout_discovery.py",
+      "tests/test_rollout_inventory.py",
       "tests/test_rollout_native_predicates.py",
       "tests/test_rollout_planner.py",
       "tests/test_rollout_predicates.py",
@@ -475,13 +498,11 @@
       "definitio/runtime.py",
       "definitio/semantics.py",
       "definitio/server.py",
-      "definitio/verifier.py"
+      "definitio/verifier.py",
+      "scripts/golden_chain_report.py"
     ],
     "untracked": [
-      "evidence/regression-full-suite.log",
-      "evidence/regression-full-suite.xml",
-      "evidence/report-run.log",
-      "tests/test_rollout_inventory.py"
+      "evidence/report-reuse.log"
     ]
   },
   "new_test_files": [
@@ -1945,7 +1966,7 @@
     "check_count": 111
   },
   "regression": {
-    "exit_code": 1,
+    "exit_code": 0,
     "total": 357,
     "passed": 347,
     "failed": 10,

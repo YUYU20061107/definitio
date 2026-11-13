@@ -4,7 +4,7 @@
 - 定名依据：现场编号 00-baseline…06-runtime-v03-golden-chain 已占用，续 07-runtime-v04-rollout；scripts/audit_g1.py 的默认 root=parents[2] 只有在该布局下才指向工作台根
 - 源码摘要 source_digest：`87d73c5b1b39bca400eb6cb45111e05a8da23467fe040180a8cd0f09ef70230e`
 - 运行时：0.2.0-dev｜shapely 2.1.2｜GEOS 3.13.1｜GDAL 3.12.2
-- 文件总数：108
+- 文件总数：112
 
 ## G1 基线
 
@@ -155,9 +155,9 @@
 ## 变更清单
 
 - 基线提交：`c6d41ba`
-- 新增（9）：docs/superpowers/plans/2026-11-14-rollout.md, evidence/baseline-full-suite.log, evidence/baseline-full-suite.xml, tests/test_rollout_commit_preview.py, tests/test_rollout_discovery.py, tests/test_rollout_native_predicates.py, tests/test_rollout_planner.py, tests/test_rollout_predicates.py, tests/test_rollout_projection.py
-- 修改（10）：definitio/agent.py, definitio/commit.py, definitio/completion.py, definitio/discovery.py, definitio/planner.py, definitio/preview.py, definitio/runtime.py, definitio/semantics.py, definitio/server.py, definitio/verifier.py
-- 未跟踪（4）：evidence/regression-full-suite.log, evidence/regression-full-suite.xml, evidence/report-run.log, tests/test_rollout_inventory.py
+- 新增（16）：docs/ROLLOUT-DELIVERY-20261114.md, docs/superpowers/plans/2026-11-14-rollout.md, evidence/baseline-full-suite.log, evidence/baseline-full-suite.xml, evidence/golden-chain-report.json, evidence/golden-chain-report.md, evidence/regression-full-suite.log, evidence/regression-full-suite.xml, evidence/report-run.log, tests/test_rollout_commit_preview.py, tests/test_rollout_discovery.py, tests/test_rollout_inventory.py, tests/test_rollout_native_predicates.py, tests/test_rollout_planner.py, tests/test_rollout_predicates.py, tests/test_rollout_projection.py
+- 修改（11）：definitio/agent.py, definitio/commit.py, definitio/completion.py, definitio/discovery.py, definitio/planner.py, definitio/preview.py, definitio/runtime.py, definitio/semantics.py, definitio/server.py, definitio/verifier.py, scripts/golden_chain_report.py
+- 未跟踪（1）：evidence/report-reuse.log
 
 ## 已知限制
 
@@ -214,6 +214,7 @@
 | definitio/verification.py | 950 | `2d88a72f251a2f516cd2519a0a1c550be2f091bc79f73bb128254fae539e59e9` |
 | definitio/verifier.py | 79255 | `f5961e896995205f649d88673b95f7dd4b1975c10e44983cd0d15f97d49c69ff` |
 | docs/GOLDEN-CHAIN-DELIVERY-20261113.md | 25441 | `740d2b5db39ca035cd3b73c0175b94696c196a828e996b92de31611fcb1efb8a` |
+| docs/ROLLOUT-DELIVERY-20261114.md | 20540 | `d40ae9a0a565c24a77e8be5fc2bb5a15829798b9619cce91d0584dcb01d1e0ae` |
 | docs/superpowers/plans/2026-11-13-golden-chain.md | 112583 | `667c7405768fb2dfe26a908245fd229a9854358fd1aa57486399ed3a7410540b` |
 | docs/superpowers/plans/2026-11-14-rollout.md | 40908 | `2e4b4391af51f5184283ab3e73dc7d10124f3c869a3ed07f9fc66b24a1fc3992` |
 | evidence/a3-a6-20261113/g0/frozen.json | 9430 | `21fac5a553897ce72d7ea8a6494c1c2d335e91e75c1bc7d11f662678a960746a` |
@@ -222,9 +223,12 @@
 | evidence/a3-a6-20261113/g0/tasks.json | 42594 | `5aedd8cc1bcb5492b4a958c28463440019feb41698cf33cbcf8410770855bb9b` |
 | evidence/baseline-full-suite.log | 17012 | `6f4888da2d312d1e561c5afb8624eaeaa1d69fe21087e04aaa85a1daee666eae` |
 | evidence/baseline-full-suite.xml | 51065 | `c2a2c8bab0009f2aa13c5c0ae30c418eb27f0827c843e118b340ca92e05f8cad` |
+| evidence/golden-chain-report.json | 201308 | `3173261783092da9c9f7637482116c9a52f5e1d1bbe0ae919ef37658c266166c` |
+| evidence/golden-chain-report.md | 38272 | `982e14f2ec6e765fd2b0dec3523448d5c961f53dcd0179ad9c16401ef65ff696` |
 | evidence/regression-full-suite.log | 17106 | `697a5ca3f51c8edcecfa81eb01c23ba61bf5a76e7c538f93c816d7571dbded4e` |
 | evidence/regression-full-suite.xml | 61128 | `5dc1d72128f49165ffc0b642612c05f1e35610dae5935030807cd37f1cbe7fe7` |
-| evidence/report-run.log | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| evidence/report-reuse.log | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| evidence/report-run.log | 4169 | `1e52f155c2fbdaebff98929e253cefb96297a1974dcdf8eec2c1cf0257187b44` |
 | examples/analytic-dissolve.geojson | 3041 | `2450e119e9959b8338ba31818cbe099048be2f8a1d53da678573e0629ebc6268` |
 | examples/pdal-grid.las | 3347 | `c674843b5ffa87c1b6a5331dd951f7258303ac3172ba1ef1fbd3b0ed885d017b` |
 | requirements-core.txt | 136 | `6411b9488f352fa56580cebef79975c518bd175e29fbcfe8d7085d798b882a26` |
