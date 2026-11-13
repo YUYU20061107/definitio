@@ -16,6 +16,9 @@ PARAM = re.compile(r"\b([a-z][a-z_0-9]*)\s*=")
 CONTROL_FIELDS = {"request_id", "authorization_id"}
 RAISED = (re.compile(r'GISFault\(\s*"([A-Z][A-Z_]{3,})"'),
           re.compile(r'require\((?:[^(),]|\([^()]*\))+,\s*"([A-Z][A-Z_]{3,})"'))
+# The worker scripts are part of the execution surface (runtime.source_digest includes
+# them). Their failures surface through completion.worker() as BACKEND_ERROR.
+SCANNED_SCRIPTS = ("native_gis_worker.py", "qgis_processing_worker.py")
 
 
 def prompt_tool_calls(template, known):
@@ -30,7 +33,10 @@ def raised_codes(package_dir):
     """Every error code the package can raise, found statically plus the verifier's policy maps."""
     from .verifier import PRECHECK_CODES, PROBLEM_KIND_CODES
     codes = set(PRECHECK_CODES.values()) | set(PROBLEM_KIND_CODES.values())
-    for path in sorted(Path(package_dir).glob("*.py")):
+    paths = sorted(Path(package_dir).glob("*.py"))
+    scripts = Path(package_dir).parent / "scripts"
+    paths += [scripts / name for name in SCANNED_SCRIPTS if (scripts / name).is_file()]
+    for path in paths:
         text = path.read_text(encoding="utf-8")
         for pattern in RAISED:
             codes.update(pattern.findall(text))
