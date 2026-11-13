@@ -1,0 +1,97 @@
+{
+  "file_count": 108,
+  "g1_baseline": {
+    "total": 59,
+    "unchanged": 59,
+    "changed": [],
+    "missing": [],
+    "status": "PASS",
+    "files": [
+      {
+        "file": "dashboard.html",
+        "sha256": "80ca3a7bf2820c41ce6bdedfe4a96c901ee2c5263f4a0607d9a2b5079531dcac",
+        "expected": "80ca3a7bf2820c41ce6bdedfe4a96c901ee2c5263f4a0607d9a2b5079531dcac",
+        "unchanged": true
+      },
+      {
+        "file": "README.md",
+        "sha256": "624a257196a126577a7d403f1929c1f528eff3f80536adfda0a49375ad65de0d",
+        "expected": "624a257196a126577a7d403f1929c1f528eff3f80536adfda0a49375ad65de0d",
+        "unchanged": true
+      },
+      {
+        "file": "00-baseline/project-evaluation-plan-v1.md",
+        "sha256": "9123a8ef48cdc9bae91ec96bbc71fe64d600d79c1dd26c34f50db9dd2d5ae069",
+        "expected": "9123a8ef48cdc9bae91ec96bbc71fe64d600d79c1dd26c34f50db9dd2d5ae069",
+        "unchanged": true
+      },
+      {
+        "file": "00-baseline/project-evaluation-plan-v1.pdf",
+        "sha256": "684a0c3b95b3df17b3e26952cee8d5854bbf0f3255a22f080fc6ab196d2d7825",
+        "expected": "684a0c3b95b3df17b3e26952cee8d5854bbf0f3255a22f080fc6ab196d2d7825",
+        "unchanged": true
+      },
+      {
+        "file": "01-evaluation/audit-results.json",
+        "sha256": "fb16048fbb8a580f2abb828fbda368766e1788e6b3c9da7b37a0ed074cf16718",
+        "expected": "fb16048fbb8a580f2abb828fbda368766e1788e6b3c9da7b37a0ed074cf16718",
+        "unchanged": true
+      },
+      {
+        "file": "01-evaluation/audit_baseline.py",
+        "sha256": "061072d3d96d208a4690179edb2c5f1ec11217006847bf5e5672295c32e892f6",
+        "expected": "061072d3d96d208a4690179edb2c5f1ec11217006847bf5e5672295c32e892f6",
+        "unchanged": true
+      },
+      {
+        "file": "01-evaluation/baseline-audit-20261109.md",
+        "sha256": "03d274acb86eda0863129360d14adffad9875cac67e87615561a19193a7b204e",
+        "expected": "03d274acb86eda0863129360d14adffad9875cac67e87615561a19193a7b204e",
+        "unchanged": true
+      },
+      {
+        "file": "01-evaluation/landscape-L01-assessment-20261109.md",
+        "sha256": "86ce89d9a9b00233b0ca16b9d1370a79cd13877bdb2929a0d8c8cdb4a7e3704f",
+        "expected": "86ce89d9a9b00233b0ca16b9d1370a79cd13877bdb2929a0d8c8cdb4a7e3704f",
+        "unchanged": true
+      },
+      {
+        "file": "01-evaluation/landscape-signal-20261109.md",
+        "sha256": "4fe64e16dfc2fb40aa53c8f47ee44de121c0680bb3509436eaca5685645128ea",
+        "expected": "4fe64e16dfc2fb40aa53c8f47ee44de121c0680bb3509436eaca5685645128ea",
+        "unchanged": true
+      },
+      {
+        "file": "01-evaluation/scorecard-SC-01.md",
+        "sha256": "40ef3faafa658c6d396e87837b272acb947e7e2291af8de7f5bb93ce1c07dbb1",
+        "expected": "40ef3faafa658c6d396e87837b272acb947e7e2291af8de7f5bb93ce1c07dbb1",
+        "unchanged": true
+      },
+      {
+        "file": "01-evaluation/scorecard-SC-02.md",
+        "sha256": "837ef45ac95f97148a189d7bd02921110e41c68e8a45bd11812f1542edabc228",
+        "expected": "837ef45ac95f97148a189d7bd02921110e41c68e8a45bd11812f1542edabc228",
+        "unchanged": true
+      },
+      {
+        "file": "02-g1-gate/acceptance-precheck-v1.md",
+        "sha256": "9cb656718ddb61a7fcd804191a42b58cd44e05e2d4d5e4e7a375ac8e21e4c01d",
+        "expected": "9cb656718ddb61a7fcd804191a42b58cd44e05e2d4d5e4e7a375ac8e21e4c01d",
+        "unchanged": true
+      },
+      {
+        "file": "02-g1-gate/pending-items-full-v0.1.md",
+        "sha256": "a002e7c17443ff363a17d3f60082484630353b9666012ef7a6fcb11e8a7eb8e8",
+        "expected": "a002e7c17443ff363a17d3f60082484630353b9666012ef7a6fcb11e8a7eb8e8",
+        "unchanged": true
+      },
+      {
+        "file": "02-g1-gate/precheck-report.md",
+        "sha256": "01843239bd1855505e7ffb56e40b754b3753fbaca527ba2faadb6510ab1e31c2",
+        "expected": "01843239bd1855505e7ffb56e40b754b3753fbaca527ba2faadb6510ab1e31c2",
+        "unchanged": true
+      },
+      {
+        "file": "02-g1-gate/precheck-results.json",
+
+{"total": 357, "passed": 347, "failed": 10, "errors": 0, "skipped": 0}

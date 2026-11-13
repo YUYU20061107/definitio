@@ -24,9 +24,19 @@ ACCEPTANCE = {
     "A4_midchain_failure_recovers": "test_a4_midchain_failure_recovers_from_valid_state",
     "A5_retry_has_no_duplicate_or_out_of_scope_effects": "test_a5_commit_and_export_retries_have_no_duplicate_or_out_of_scope_effects",
 }
-NEW_TEST_FILES = ("test_golden_semantics.py", "test_golden_verifier.py", "test_golden_commit.py",
-                  "test_golden_resume.py", "test_golden_discovery.py", "test_golden_chain.py",
-                  "test_golden_g1_guard.py")
+NEW_TEST_FILES = ("test_rollout_projection.py", "test_rollout_predicates.py", "test_rollout_native_predicates.py",
+                  "test_rollout_commit_preview.py", "test_rollout_discovery.py", "test_rollout_planner.py",
+                  "test_rollout_inventory.py")
+ROLLOUT_ACCEPTANCE = {
+    "R1_three_surface_projection_consistency": "test_three_surfaces_emit_the_identical_projection_for_vector",
+    "R1_geographic_axis_order_survives": "test_geographic_axis_order_survives_all_three_surfaces",
+    "R3_dry_run_execute_same_checks": "test_preview_and_execute_run_the_same_invariant_checks",
+    "R3_preview_commit_verify_same_predicate_objects": "test_preview_execute_verify_share_predicate_objects",
+    "R4_full_60_tool_zero_inconsistency": "test_audit_covers_all_60_tools_with_zero_inconsistency",
+    "R5_spatial_join_intent": "test_spatial_join_intent_branch",
+    "R5_import_intent": "test_import_intent_branch_first_step",
+    "inventory_40_verbs_no_blanks": "test_registry_covers_exactly_the_40_frozen_verbs",
+}
 
 
 def sha256(path):
@@ -114,6 +124,27 @@ def acceptance_evidence(suite):
                   "id": by_name.get(name, {}).get("id")} for key, name in ACCEPTANCE.items()}
 
 
+def rollout_acceptance_evidence(suite):
+    by_name = {case["name"]: case for case in suite["cases"]}
+    return {key: {"test_name": name, "present": name in by_name,
+                  "status": by_name.get(name, {}).get("status", "NOT_RUN"),
+                  "id": by_name.get(name, {}).get("id")} for key, name in ROLLOUT_ACCEPTANCE.items()}
+
+
+def predicate_inventory():
+    from definitio.verifier import CHECK_REGISTRY, SHARED_CHECKS
+    verbs = []
+    for verb in sorted(CHECK_REGISTRY):
+        entry = CHECK_REGISTRY[verb]
+        verbs.append({"verb": verb,
+                      "checks": entry["checks"],
+                      "basic_only_reason": entry.get("basic_only_reason")})
+    return {"shared": SHARED_CHECKS, "verbs": verbs,
+            "verb_count": len(verbs),
+            "basic_only_count": sum(1 for v in verbs if not v["checks"]),
+            "check_count": sum(len(v["checks"]) for v in verbs)}
+
+
 ENVIRONMENT_BLOCKED = {
     "test_tile_binary_http_download_decode_and_expiration",
     "test_actual_sta_all_entity_sets_and_exact_odata_downpush",
@@ -156,7 +187,7 @@ def reconcile_baseline(baseline_xml, suite):
 
 
 def render_markdown(report):
-    lines = ["# Definitio 黄金链纵切（v03）自动化报告", "",
+    lines = ["# Definitio D1–D5 横向推广（v04 rollout）自动化报告", "",
              f"- 版本目录：`{report['version_directory']}`",
              f"- 定名依据：{report['naming_rationale']}",
              f"- 源码摘要 source_digest：`{report['source_digest']}`",
@@ -203,6 +234,24 @@ def render_markdown(report):
         lines += ["", "## 五类验收", "", "| 类别 | 测试 | 状态 |", "|---|---|---|"]
         for key, item in report["acceptance"].items():
             lines.append(f"| {key} | `{item['test_name']}` | {item['status']} |")
+        if report.get("rollout_acceptance"):
+            lines += ["", "## 本轮推广验收（R1/R3/R4/R5/清单）", "", "| 类别 | 测试 | 状态 |", "|---|---|---|"]
+            for key, item in report["rollout_acceptance"].items():
+                lines.append(f"| {key} | `{item['test_name']}` | {item['status']} |")
+    inventory = report.get("predicate_inventory")
+    if inventory:
+        lines += ["", "## 逐动词谓词清单（40 动词，无空白）", "",
+                  f"- 共享基础检查（矢量提案）：{', '.join(inventory['shared']['vector_proposal'])}",
+                  f"- 契约谓词（全动词）：{', '.join(inventory['shared']['contract_predicates'])}",
+                  f"- 执行策略检查：{', '.join(inventory['shared']['execution_policy'])}",
+                  f"- 专属检查项合计：{inventory['check_count']}；仅基础检查动词：{inventory['basic_only_count']}", "",
+                  "| 动词 | 专属检查项（方法｜依据｜层） |", "|---|---|"]
+        for entry in inventory["verbs"]:
+            if entry["checks"]:
+                cell = "<br>".join(f"`{c['id']}`（{c['method']}｜{c['basis']}｜{c['layer']}）" for c in entry["checks"])
+            else:
+                cell = f"仅基础检查＋{entry['basic_only_reason']}"
+            lines.append(f"| {entry['verb']} | {cell} |")
     lines += ["", "## 变更清单", "",
               f"- 基线提交：`{report['changes']['baseline_commit']}`",
               f"- 新增（{len(report['changes']['added'])}）：" + ", ".join(report["changes"]["added"]),
@@ -221,7 +270,9 @@ def main():
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--workbench", type=Path, default=ROOT.parent)
     parser.add_argument("--g1-baseline", type=Path, default=Path("D:/agent-native-gis/evidence/baseline-sha256-before.json"))
-    parser.add_argument("--baseline-commit", default="491687c")
+    parser.add_argument("--baseline-commit", default="c6d41ba")
+    parser.add_argument("--baseline-xml", type=Path, default=None,
+                        help="pre-change full-suite junitxml for per-ID reconciliation")
     parser.add_argument("--out", type=Path, default=ROOT / "evidence")
     parser.add_argument("--skip-tests", action="store_true")
     parser.add_argument("--reuse", action="store_true", help="reuse the existing junitxml instead of rerunning pytest")
@@ -244,10 +295,11 @@ def main():
     else:
         suite = run_suite(args.root, args.out, "regression-full-suite")
     files = manifest(args.root)
+    baseline_xml = args.baseline_xml or (args.out / "baseline-full-suite.xml")
     report = {
         "format": "definitio-golden-chain-report-v1",
         "version_directory": str(args.root),
-        "naming_rationale": "现场编号 00-baseline…05-reference-runtime 已占用，续 06；scripts/audit_g1.py 的默认 root=parents[2] 只有在该布局下才指向工作台根",
+        "naming_rationale": "现场编号 00-baseline…06-runtime-v03-golden-chain 已占用，续 07-runtime-v04-rollout；scripts/audit_g1.py 的默认 root=parents[2] 只有在该布局下才指向工作台根",
         "source_digest": versions["source_digest"], "versions": versions,
         "file_manifest": files, "file_count": len(files),
         "changes": change_set(args.root, args.baseline_commit),
@@ -255,15 +307,22 @@ def main():
         "g1_baseline": g1_guard(args.workbench, args.g1_baseline),
         "discovery_consistency": {k: v for k, v in consistency.items() if k != "tools"},
         "discovery_tools_inconsistent": [t for t in consistency["tools"] if not t["consistent"]],
+        "predicate_inventory": predicate_inventory(),
         "regression": suite,
         "acceptance": acceptance_evidence(suite) if suite else None,
+        "rollout_acceptance": rollout_acceptance_evidence(suite) if suite else None,
         "known_limits": [
-            "10 项 test_native_completion 依赖本机 PostGIS/GeoServer 沙箱配置与外部 istSOS 端点；本轮离线红线不启动服务、不访问外网，保留红灯并附源工作站同样失败的对照",
+            "10 项 test_native_completion 依赖本机 PostGIS/GeoServer 沙箱配置与外部 istSOS 端点；本轮离线红线不启动服务、不访问外网，保留红灯并附开工前基线同样失败的对照",
             "干净 venv 安装未验证；本轮显式复用 D:/agent-native-gis/.venv（system-site-packages=true）",
             "真实模型评测未做；引擎未切版，8765/8876 未动",
-            "D1–D5 只沿黄金链落实，40 动词未全量推广",
-            "文件产物首版只开放 geojson；轴序解析只覆盖 WKT2 AXIS 节点",
-            "读回核对与 GEOS 同源，不是独立几何 oracle；缓冲真值用正 32 边形解析面积，非 πr²",
+            "同核复算与 GEOS/PROJ/GDAL/PDAL 同源，是自洽性检查，不是独立几何 oracle，不证明跨后端等价或校准容差",
+            "buffer 面积上界用平行体解析界 A+2Lr+πr²（相对松弛 1e-9）；下界用包含关系；点缓冲精确真值仍为正 32 边形（A1）",
+            "reproject 往返容差 1e-6×max(1,|坐标|) 为同核 PROJ 浮点噪声界；坐标超 4096 时边界一致性降级无法确认",
+            "地形像元抽查为独立 numpy Horn 实现复算，float32 相对容差 1e-6、hillshade uint8 ±1、aspect 环差 1e-4 度",
+            "服务动词（publish/serve_tile/list_services/query_observations/run_gp）后端环境阻塞：谓词以合成回执做谓词级验证，未声称为后端实测证据",
+            "tile 字节级重算不在验证上下文（二进制句柄属引擎进程），如实列入无法确认段",
+            "文件产物只开放 geojson；轴序解析只覆盖 WKT2 AXIS 节点；planner 目标句仍限 1–1000 字（导入长 URI 须走 task_plan 显式步骤）",
+            "HTTP 直传导入路径保持第一轮冻结语义（lineage.operation=None，溯源在 source.kind）；控制面导入已补谱系",
         ],
     }
     if suite:
@@ -275,7 +334,7 @@ def main():
                                     "passed": suite["passed"] - report["new_tests"]["passed"],
                                     "failed": suite["failed"] - report["new_tests"]["failed"]}
         report["failure_classification"] = classify_failures(suite)
-        report["baseline_reconciliation"] = reconcile_baseline(args.out / "baseline-full-suite-r2.xml", suite)
+        report["baseline_reconciliation"] = reconcile_baseline(baseline_xml, suite)
     (args.out / "golden-chain-report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     (args.out / "golden-chain-report.md").write_text(render_markdown(report), encoding="utf-8")
     print(json.dumps({k: report[k] for k in ("file_count", "g1_baseline", "discovery_consistency", "acceptance")

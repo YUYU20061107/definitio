@@ -952,6 +952,168 @@ PRECHECK_CODES = {"distance_unit_compatibility": "NOT_SUPPORTED",
 PROBLEM_KIND_CODES = {"crs_mismatch": "CRS_MISMATCH", "object_type": "NOT_SUPPORTED",
                       "not_supported": "NOT_SUPPORTED", "schema": "SCHEMA_MISMATCH", "count": "SCHEMA_MISMATCH"}
 
+# Per-verb predicate inventory (single source for the delivery report).
+# layer: commit = 提交时（含提案）; preview = 预演同核; verify = task_get(verify=true) 复核;
+# result = 只读结果层。所有同核检查均为自洽性检查，不是独立几何 oracle。
+SHARED_CHECKS = {
+    "vector_proposal": ["schema_readback", "crs_readback"],
+    "contract_predicates": [f.__name__ for f in CONTRACT_PREDICATES],
+    "execution_policy": ["input_unchanged", "explicit_destruction", "output_readback"],
+}
+CHECK_REGISTRY = {
+    "gis_list_algorithms": {"checks": [], "basic_only_reason": "只读能力目录：结果即目录本身，无数据对象；契约谓词仍跑，算子读回不适用"},
+    "gis_describe_algorithm": {"checks": [], "basic_only_reason": "只读能力定义：结果即目录条目，无数据对象；契约谓词仍跑，算子读回不适用"},
+    "gis_create_dataset": {"checks": [
+        {"id": "create_empty_contract", "method": "empty_and_schema_readback", "basis": "空数据集与声明 schema 的精确读回", "layer": "commit+preview+verify"}]},
+    "gis_add_field": {"checks": [
+        {"id": "add_field_schema_append", "method": "schema_readback", "basis": "schema 追加精确比对", "layer": "commit+preview+verify"},
+        {"id": "add_field_count_unchanged", "method": "count_readback", "basis": "计数精确", "layer": "commit+preview+verify"},
+        {"id": "add_field_default_values", "method": "constructed_default_truth", "basis": "构造真值：每条新字段==声明 default", "layer": "commit+preview+verify"},
+        {"id": "add_field_other_fields_unchanged", "method": "properties_readback", "basis": "其余属性逐条精确", "layer": "commit+preview+verify"}]},
+    "gis_calculate_field": {"checks": [
+        {"id": "calculate_field_recompute", "method": "same_kernel_safe_expression_recompute", "basis": "同核安全表达式逐条复算（自洽性）", "layer": "commit+preview+verify"},
+        {"id": "calculate_field_other_unchanged", "method": "count_and_schema_readback", "basis": "计数/schema 精确", "layer": "commit+preview+verify"}]},
+    "gis_copy_dataset": {"checks": [
+        {"id": "copy_logical_content", "method": "logical_fingerprint_equality", "basis": "逻辑指纹相等（排序多重集）", "layer": "commit+preview"}]},
+    "gis_merge_datasets": {"checks": [
+        {"id": "merge_count_readback", "method": "count_sum", "basis": "计数求和精确", "layer": "commit+preview"},
+        {"id": "merge_fingerprint_multiset", "method": "sorted_multiset_logical_sha256", "basis": "输入拼接的排序多重集逻辑指纹==输出指纹", "layer": "commit+preview+verify"}]},
+    "gis_assign_projection": {"checks": [
+        {"id": "assign_projection_coordinates_unchanged", "method": "normalized_wkb_multiset_exact", "basis": "normalize-WKB 多重集精确相等（坐标不动）", "layer": "commit+preview+verify"}]},
+    "gis_reproject": {"checks": [
+        {"id": "reproject_count_unchanged", "method": "count_readback", "basis": "计数精确", "layer": "commit+preview+verify"},
+        {"id": "reproject_attributes_unchanged", "method": "properties_readback", "basis": "属性逐条精确", "layer": "commit+preview+verify"},
+        {"id": "reproject_roundtrip_spot", "method": "same_kernel_proj_roundtrip", "basis": "同核 PROJ 往返抽查≤8记录；绝对容差 1e-6×max(1,|坐标|)，同核浮点噪声，非独立 oracle", "layer": "commit+preview+verify"},
+        {"id": "reproject_bounds_consistency", "method": "same_kernel_transformed_bounds", "basis": "输入坐标≤4096 全量变换比对边界，容差 1e-6×跨度；超限降级无法确认", "layer": "commit+preview+verify"}]},
+    "gis_convert_format": {"checks": [
+        {"id": "copy_logical_content", "method": "logical_fingerprint_equality", "basis": "逻辑指纹相等", "layer": "commit+preview"}]},
+    "gis_buffer": {"checks": [
+        {"id": "buffer_geometry_valid", "method": "same_kernel_geos_is_valid", "basis": "GEOS 有效性（同核自洽）", "layer": "commit+preview+verify"},
+        {"id": "buffer_area_upper_bound", "method": "analytic_parallel_body_upper_bound", "basis": "解析界 A+2Lr+πr²（Steiner 平行体上界；线要素精确主项 2Lr+πr²）；quad_segs=8 内接近似只更小；相对松弛 1e-9", "layer": "commit+preview+verify"},
+        {"id": "buffer_area_lower_bound", "method": "containment_exact", "basis": "r>0 包含关系 area≥A；r<0 侵蚀 0≤area≤A；精确", "layer": "commit+preview+verify"},
+        {"id": "buffer_count_semantics", "method": "count_and_schema_set_comparison", "basis": "dissolve=false 计数==输入且属性逐条保留；true 非空→1 条且 schema 空", "layer": "commit+preview+verify"}]},
+    "gis_clip": {"checks": [
+        {"id": "attributes_retained", "method": "subsequence_properties_readback", "basis": "输出属性为输入子序列（精确）", "layer": "commit+preview+verify"},
+        {"id": "count_bound", "method": "count_set_comparison", "basis": "输出计数≤输入计数", "layer": "commit+preview+verify"},
+        {"id": "subset_area_bound", "method": "containment_area_exact", "basis": "逐条面积≤对应输入面积（包含关系，相对松弛 1e-9）", "layer": "commit+preview+verify"},
+        {"id": "subset_within_input", "method": "same_kernel_geos_covers", "basis": "同核 covers 子集性（自洽）", "layer": "commit+preview+verify"}]},
+    "gis_overlay": {"checks": [
+        {"id": "attributes_retained", "method": "subsequence_properties_readback", "basis": "输出属性为输入子序列（精确）", "layer": "commit+preview+verify"},
+        {"id": "count_bound", "method": "count_set_comparison", "basis": "输出计数≤输入计数", "layer": "commit+preview+verify"},
+        {"id": "subset_area_bound", "method": "containment_area_exact", "basis": "intersection/difference 均⊆输入，面积界精确", "layer": "commit+preview+verify"},
+        {"id": "subset_within_input", "method": "same_kernel_geos_covers", "basis": "同核 covers 子集性（自洽）", "layer": "commit+preview+verify"}]},
+    "gis_dissolve": {"checks": [
+        {"id": "dissolve_fields_only", "method": "schema_readback", "basis": "仅保留分组字段", "layer": "commit+preview"},
+        {"id": "unique_output_group", "method": "group_key_uniqueness", "basis": "每组唯一", "layer": "commit+preview"},
+        {"id": "group_key_set_readback", "method": "group_key_set_comparison", "basis": "组键集==输入分组", "layer": "commit+preview"},
+        {"id": "group_count_readback", "method": "count_readback", "basis": "组计数三方一致", "layer": "commit+preview"},
+        {"id": "multipolygon_per_group", "method": "geometry_type_readback", "basis": "每组 MultiPolygon", "layer": "commit+preview"},
+        {"id": "group_geometry_readback", "method": "same_kernel_geos_topological_equals", "basis": "同核 union_all 拓扑相等（自洽）", "layer": "commit+preview"},
+        {"id": "manifest_group_keys", "method": "manifest_key_set", "basis": "清单组键唯一且完备", "layer": "commit+preview"},
+        {"id": "manifest_membership", "method": "manifest_membership_readback", "basis": "清单成员==源记录分组", "layer": "commit+preview"}]},
+    "gis_field_statistics": {"checks": [
+        {"id": "stats_recompute", "method": "same_kernel_pure_python_recompute", "basis": "纯 Python 逐组复算；count/sum/min/max 精确，mean 相对 1e-12（同核自洽）", "layer": "commit+preview(result)"},
+        {"id": "stats_group_set", "method": "group_key_set_comparison", "basis": "组数==输入分组数", "layer": "commit+preview(result)"},
+        {"id": "stats_input_count", "method": "count_readback", "basis": "input_feature_count 精确", "layer": "commit+preview(result)"},
+        {"id": "stats_null_accounting", "method": "null_count_recompute", "basis": "null_count 逐组复算精确", "layer": "commit+preview(result)"}]},
+    "gis_spatial_filter": {"checks": [
+        {"id": "filter_count_matches", "method": "same_kernel_predicate_recount", "basis": "同核谓词重数（自洽）", "layer": "commit+preview(result)"},
+        {"id": "filter_subset_records", "method": "whole_record_subset_readback", "basis": "整记录子集（属性+几何精确）", "layer": "commit+preview(result)"},
+        {"id": "filter_predicate_recheck", "method": "same_kernel_geos_predicate", "basis": "同核谓词复检（自洽）", "layer": "commit+preview(result)"}]},
+    "gis_measure": {"checks": [
+        {"id": "measure_recompute", "method": "same_kernel_shapely_recompute", "basis": "同核复算，相对 1e-12（自洽）", "layer": "commit+preview(result)"},
+        {"id": "measure_unit_label", "method": "declared_unit_readback", "basis": "area→m²、length/distance→m、projected_planar", "layer": "commit+preview(result)"}]},
+    "gis_validate_geometry": {"checks": [
+        {"id": "validate_recheck", "method": "same_kernel_geos_validity_rescan", "basis": "独立 is_valid 扫描比对 issues（同核自洽）", "layer": "commit+preview(result)"},
+        {"id": "validate_count", "method": "count_readback", "basis": "checked==feature_count", "layer": "commit+preview(result)"},
+        {"id": "validate_flag_consistency", "method": "flag_consistency", "basis": "valid==无 issues", "layer": "commit+preview(result)"}]},
+    "gis_delete_field": {"checks": [
+        {"id": "removed_fields_absent", "method": "schema_readback", "basis": "被删字段不在输出", "layer": "commit+preview"},
+        {"id": "delete_field_count", "method": "count_readback", "basis": "计数不变", "layer": "commit+preview"},
+        {"id": "delete_field_values_unchanged", "method": "properties_readback", "basis": "保留字段值逐条精确", "layer": "commit+preview+verify"}]},
+    "gis_rename_dataset": {"checks": [
+        {"id": "rename_content_unchanged", "method": "fingerprint_equality", "basis": "内容指纹==输入（改名不动数据）", "layer": "commit+preview+verify"},
+        {"id": "rename_head_resolves", "method": "head_resolution_readback", "basis": "新名解析到同一 ID；预演降级无法确认", "layer": "commit+verify"},
+        {"id": "rename_old_name_gone", "method": "database_readback_absence", "basis": "旧名不再解析；预演降级无法确认", "layer": "commit+verify"}]},
+    "gis_append_dataset": {"checks": [
+        {"id": "append_count_readback", "method": "count_sum", "basis": "计数求和精确", "layer": "commit+preview"},
+        {"id": "append_multiset_readback", "method": "sorted_multiset_logical_sha256", "basis": "目标+源拼接多重集指纹", "layer": "commit+preview"},
+        {"id": "append_version_accounting", "method": "proposal_count_readback", "basis": "before/added/after 计数对账；复核无提案降级无法确认", "layer": "commit+preview"}]},
+    "gis_import_data": {"checks": [
+        {"id": "import_license_attestation", "method": "caller_attestation_readback", "basis": "allow_import=true 且 evidence_ref 非空（调用方声明，不推断外部许可）", "layer": "commit+preview+verify"},
+        {"id": "import_source_fingerprint_binding", "method": "source_document_sha256", "basis": "源文档 sha256==提案 source_fingerprint；复核无提案降级无法确认", "layer": "commit+preview"},
+        {"id": "import_content_fingerprint", "method": "source_to_output_logical_sha256", "basis": "输出指纹==源文档验证后的逻辑指纹（构造真值）", "layer": "commit+preview+verify"}]},
+    "gis_spatial_join": {"checks": [
+        {"id": "join_count_accounting", "method": "same_kernel_predicate_recount", "basis": "同核逐对复算 matched/unmatched 与输出行数（≤20000 对，超限降级）", "layer": "commit+preview+verify"},
+        {"id": "join_proposal_counts", "method": "same_kernel_predicate_recount", "basis": "提案 matched/unmatched==复算值", "layer": "commit+preview"},
+        {"id": "join_left_outer_nulls", "method": "left_outer_null_semantics_readback", "basis": "summary=first 未匹配行连接字段全 null", "layer": "commit+preview+verify"}]},
+    "gis_raster_calc": {"checks": [
+        {"id": "grid_and_pixels_readback", "method": "sqlite_exact_raster_snapshot", "basis": "持久栅格==输出栅格（精确）", "layer": "commit+preview+verify"},
+        {"id": "raster_nodata_accounting", "method": "pixel_count_accounting", "basis": "valid+nodata==w*h", "layer": "commit+preview+verify"},
+        {"id": "raster_grid_alignment", "method": "grid_property_exact_comparison", "basis": "transform/宽/高==全部输入（无重采样）", "layer": "commit+preview+verify"},
+        {"id": "raster_nodata_mask_semantics", "method": "nodata_union_exact", "basis": "输出掩膜==输入掩膜并集（精确）", "layer": "commit+preview+verify"},
+        {"id": "raster_pixel_spot", "method": "same_grammar_independent_arithmetic_recompute", "basis": "独立 AST 求值器按公布文法复算≤16 像元，相对 1e-9（同文法自洽）", "layer": "commit+preview+verify"}]},
+    "gis_slope": {"checks": [
+        {"id": "grid_and_pixels_readback", "method": "sqlite_exact_raster_snapshot", "basis": "精确读回", "layer": "commit+preview+verify"},
+        {"id": "raster_nodata_accounting", "method": "pixel_count_accounting", "basis": "valid+nodata==w*h", "layer": "commit+preview+verify"},
+        {"id": "raster_grid_alignment", "method": "grid_property_exact_comparison", "basis": "网格==输入", "layer": "commit+preview+verify"},
+        {"id": "raster_nodata_mask_semantics", "method": "horn_3x3_mask_exact", "basis": "掩膜==边界＋3x3 含 NoData（Horn 声明语义）", "layer": "commit+preview+verify"},
+        {"id": "raster_pixel_spot", "method": "same_formula_independent_horn_recompute_float32_margin", "basis": "独立 numpy Horn 复算；slope=atan(z_factor·√(dzdx²+dzdy²))；float32 相对容差 1e-6（同公式自洽，非独立 oracle）", "layer": "commit+preview+verify"}]},
+    "gis_aspect": {"checks": [
+        {"id": "grid_and_pixels_readback", "method": "sqlite_exact_raster_snapshot", "basis": "精确读回", "layer": "commit+preview+verify"},
+        {"id": "raster_nodata_accounting", "method": "pixel_count_accounting", "basis": "valid+nodata==w*h", "layer": "commit+preview+verify"},
+        {"id": "raster_grid_alignment", "method": "grid_property_exact_comparison", "basis": "网格==输入", "layer": "commit+preview+verify"},
+        {"id": "raster_nodata_mask_semantics", "method": "horn_3x3_mask_exact", "basis": "掩膜==边界＋3x3 含 NoData＋平坦像元（flat_policy=nodata）", "layer": "commit+preview+verify"},
+        {"id": "raster_pixel_spot", "method": "same_formula_independent_horn_recompute_float32_margin", "basis": "aspect=atan2(-dzdx,dzdy)%360，环差容差 1e-4 度；float32 舍入（同公式自洽）", "layer": "commit+preview+verify"}]},
+    "gis_hillshade": {"checks": [
+        {"id": "grid_and_pixels_readback", "method": "sqlite_exact_raster_snapshot", "basis": "精确读回", "layer": "commit+preview+verify"},
+        {"id": "raster_nodata_accounting", "method": "pixel_count_accounting", "basis": "valid+nodata==w*h", "layer": "commit+preview+verify"},
+        {"id": "raster_grid_alignment", "method": "grid_property_exact_comparison", "basis": "网格==输入", "layer": "commit+preview+verify"},
+        {"id": "raster_nodata_mask_semantics", "method": "horn_3x3_mask_exact", "basis": "掩膜==边界＋3x3 含 NoData", "layer": "commit+preview+verify"},
+        {"id": "raster_pixel_spot", "method": "same_formula_independent_horn_recompute_float32_margin", "basis": "独立 Horn 光照公式复算；uint8 绝对容差±1（GDAL traditional 1..255 舍入，同公式自洽）", "layer": "commit+preview+verify"}]},
+    "gis_reclassify": {"checks": [
+        {"id": "grid_and_pixels_readback", "method": "sqlite_exact_raster_snapshot", "basis": "精确读回", "layer": "commit+preview+verify"},
+        {"id": "raster_nodata_accounting", "method": "pixel_count_accounting", "basis": "valid+nodata==w*h", "layer": "commit+preview+verify"},
+        {"id": "raster_grid_alignment", "method": "grid_property_exact_comparison", "basis": "网格==输入", "layer": "commit+preview+verify"},
+        {"id": "raster_nodata_mask_semantics", "method": "nodata_propagation_exact", "basis": "输入 null 保持 null", "layer": "commit+preview+verify"},
+        {"id": "raster_pixel_spot", "method": "constructed_rule_mapping_truth", "basis": "按声明区间规则构造真值，精确映射（含 unmapped keep/nodata）", "layer": "commit+preview+verify"}]},
+    "gis_zonal_statistics": {"checks": [
+        {"id": "zonal_zone_count", "method": "count_and_table_readback", "basis": "行数==zones 计数；几何全 null（表）", "layer": "commit+preview+verify"},
+        {"id": "zonal_table_schema", "method": "schema_readback", "basis": "zone_field+statistics 精确", "layer": "commit+preview+verify"},
+        {"id": "zonal_pixel_accounting", "method": "same_kernel_pixel_center_mask_recount", "basis": "同核 geometry_mask 中心规则复算 pixel/valid/nodata 计数（精确）", "layer": "commit+preview+verify"},
+        {"id": "zonal_stats_recompute", "method": "same_kernel_numpy_recompute", "basis": "numpy 复算 sum/mean/min/max，相对 1e-9（同核自洽）", "layer": "commit+preview+verify"}]},
+    "gis_pointcloud_info": {"checks": [
+        {"id": "pc_info_count_matches", "method": "snapshot_count_readback", "basis": "result.point_count==输入快照", "layer": "commit+preview(result)"},
+        {"id": "pc_info_dimensions_match", "method": "snapshot_dimensions_readback", "basis": "维度列表==输入快照", "layer": "commit+preview(result)"},
+        {"id": "pc_info_fingerprint_binding", "method": "snapshot_fingerprint_readback", "basis": "input_fingerprint==输入指纹", "layer": "commit+preview(result)"}]},
+    "gis_pointcloud_process": {"checks": [
+        {"id": "pointcloud_bytes_readback", "method": "sqlite_exact_bytes_and_metadata", "basis": "持久字节==输出字节（精确）", "layer": "commit+preview+verify"},
+        {"id": "pointcloud_dimensions_preserved", "method": "dimension_list_readback", "basis": "维度保真（算子已强制，验证器复核）", "layer": "commit+preview+verify"},
+        {"id": "pointcloud_count_accounting", "method": "constructed_action_truth", "basis": "merge=输入和；thin_decimate=len(range(offset,n,step)) 构造真值；reproject/convert 守恒；clip/thin_radius≤输入（PDAL 语义上界）", "layer": "commit+preview+verify"},
+        {"id": "pointcloud_fingerprint_recomputed", "method": "byte_sha256_binding", "basis": "字节 sha256 重算绑定指纹", "layer": "commit+preview+verify"},
+        {"id": "pc_boundary_vector_contract", "method": "declared_addendum_contract_readback", "basis": "boundary 动作：schema 空、CRS 保留（本地附录声明）", "layer": "commit+preview+verify"}]},
+    "gis_run_processing": {"checks": [
+        {"id": "processing_centroid_semantics", "method": "declared_seed_semantics_readback", "basis": "native:centroids 种子：ALL_PARTS 时计数==部件数否则==要素数；几何全 Point；schema 保留", "layer": "commit+preview+verify"}]},
+    "gis_run_gp": {"checks": [
+        {"id": "gp_count_readback", "method": "native_count_readback", "basis": "ArcPy GetCount==输入 feature_count（精确）；后端环境阻塞时以合成回执做谓词级验证", "layer": "commit+preview(result)"}]},
+    "gis_delete_dataset": {"checks": [
+        {"id": "dataset_absent_readback", "method": "database_readback_absence", "basis": "销毁后按 ID 重开必须 NOT_FOUND（真实缺席读回）；预演降级无法确认", "layer": "commit+verify"}]},
+    "gis_serve_vector_tile": {"checks": [
+        {"id": "tile_handle_metadata", "method": "handle_metadata_readback", "basis": "sha256 64hex、byte_length>0、expires=300；字节重算不在上下文→无法确认段", "layer": "commit+preview(result)"}]},
+    "gis_publish_layer": {"checks": [
+        {"id": "publish_readback_receipt", "method": "wfs_readback_receipt_reconciliation", "basis": "WFS 回读指纹==源指纹==输入指纹、计数对账、catalog_writeback=pending；后端环境阻塞时以合成回执做谓词级验证", "layer": "commit(result)"}]},
+    "gis_list_services": {"checks": [
+        {"id": "services_receipt_structure", "method": "capability_receipt_readback", "basis": "service_count==len(services)、response_sha256 存在；外部能力文档无本地真值", "layer": "commit+preview(result)"}]},
+    "gis_query_observations": {"checks": [
+        {"id": "sta_receipt_structure", "method": "odata_receipt_readback", "basis": "returned_count==len(data)、无本地过滤/拼页、response_sha256 存在", "layer": "commit+preview(result)"}]},
+    "gis_add_layer_from_catalog": {"checks": [
+        {"id": "native_resource_readback", "method": "native_backend_and_sqlite_sha256", "basis": "资源记录重开指纹一致", "layer": "commit+verify"},
+        {"id": "resource_map_layers_accounting", "method": "resource_layer_binding_readback", "basis": "layers 恰增 1 且 dataset_ref/catalog_id/license_ref 绑定目录证据", "layer": "commit+preview+verify"}]},
+    "gis_export_map_image": {"checks": [
+        {"id": "native_resource_readback", "method": "native_backend_and_sqlite_sha256", "basis": "资源记录重开指纹一致", "layer": "commit+verify"},
+        {"id": "resource_image_integrity", "method": "sha256_bytes_and_map_property_readback", "basis": "base64 解码 sha256==file_sha256；width/height==地图；dpi==请求", "layer": "commit+preview+verify"}]},
+}
+
 
 def enforce_precheck(result):
     """Policy for the before-side-effect pass: name the predicate that refused."""
