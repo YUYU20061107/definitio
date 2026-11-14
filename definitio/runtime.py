@@ -474,6 +474,10 @@ class Runtime:
             if any(k in proposal for k in ("raster", "pointcloud", "resource")) or proposal.get("lifecycle") in ("destroy", "rename"):
                 checks.extend(verifier.legacy_checks(verification))
             task.setdefault("actual_writes", []).extend(actual_writes)
+            from .protocol import classify_disposition, disposition_basis
+            v05_delivered = (bool(output) or destroyed or step["verb"] == "gis_publish_layer"
+                             or isinstance(proposal.get("result"), dict))
+            v05_has_output = bool(output) or destroyed
             evidence = {"id": evidence_id, "task_id": task["id"], "step_id": step["id"], "attempt_id": step["attempt_id"],
                         "created_at": now(), "verb": step["verb"], "vid": step["vid"], "level": step["level"],
                         "backend": "local-geos", "implementation_route": "local_geos_gdal", "versions": self.versions,
@@ -491,7 +495,13 @@ class Runtime:
                         "atomicity": "external_service_nontransactional; isolate_on_unknown" if step["verb"] == "gis_publish_layer" else "sqlite_transaction_per_step", "target_state": "destroyed" if destroyed else "external_published" if step["verb"] == "gis_publish_layer" else "committed" if output else "read_only",
                         "certification": "NOT_CERTIFIED", "observation_ref": None,
                         "verification_limits": ["Readback checks are not an independent geometry oracle", "No cross-backend equivalence or calibrated tolerances claimed"],
-                        **{k: v for k, v in proposal.items() if k not in ("geojson", "raster", "pointcloud", "resource", "schema", "crs", "checks")}}
+                        **{k: v for k, v in proposal.items() if k not in ("geojson", "raster", "pointcloud", "resource", "schema", "crs", "checks")},
+                        "disposition": classify_disposition(
+                            delivered=v05_delivered, verification=verification, checks=checks,
+                            has_output=v05_has_output),
+                        "disposition_basis": disposition_basis(
+                            delivered=v05_delivered, verification=verification, checks=checks,
+                            has_output=v05_has_output)}
             if output is not None:
                 evidence["semantic"] = output.get("semantic")
             elif step["level"] == "R0" and isinstance(proposal.get("result"), dict) and step["verb"] not in ("gis_list_algorithms", "gis_describe_algorithm"):

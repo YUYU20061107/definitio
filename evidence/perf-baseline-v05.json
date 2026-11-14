@@ -1,0 +1,154 @@
+{
+  "format": "definitio-perf-baseline-v1",
+  "captured_at": "2026-11-14T16:10:11+0800",
+  "python": "3.12.9",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "runtime_versions": {
+    "runtime": "0.2.0-dev",
+    "contract": "G1-v0.1-draft (not certified)",
+    "interface": "definitio-local-v0.1",
+    "normalization": "definitio-logical-v1",
+    "shapely": "2.1.2",
+    "geos": "3.13.1",
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2",
+    "planner": "local-intent-grammar-v1",
+    "comparator": "readback-invariants-v2",
+    "source_digest": "05aa24b42cf0aff9e5394f62deab2c8408c0c79e20c822f43812081c35450aba",
+    "independent_geometry_oracle": false
+  },
+  "groups": {
+    "golden_chain_six_steps_cold_hot": {
+      "repeats": 3,
+      "unit": "milliseconds",
+      "cold_definition": "每个样本在全新 Runtime 上首次执行该步（含冷启动）",
+      "hot_definition": "同一 Runtime 内预热一条链后重复执行，取后续样本",
+      "steps": {
+        "1_dataset_import": {
+          "cold_median_ms": 52.389,
+          "hot_median_ms": 34.822,
+          "cold_mean_ms": 55.332,
+          "hot_mean_ms": 40.067,
+          "cold_samples_ms": [
+            65.691,
+            47.917,
+            52.389
+          ],
+          "hot_samples_ms": [
+            53.061,
+            34.822,
+            32.319
+          ]
+        },
+        "2_gis_copy_dataset": {
+          "cold_median_ms": 351.804,
+          "hot_median_ms": 295.835,
+          "cold_mean_ms": 358.01,
+          "hot_mean_ms": 317.835,
+          "cold_samples_ms": [
+            337.539,
+            351.804,
+            384.687
+          ],
+          "hot_samples_ms": [
+            372.648,
+            295.835,
+            285.021
+          ]
+        },
+        "3_gis_buffer": {
+          "cold_median_ms": 352.588,
+          "hot_median_ms": 316.069,
+          "cold_mean_ms": 353.601,
+          "hot_mean_ms": 318.407,
+          "cold_samples_ms": [
+            338.325,
+            369.89,
+            352.588
+          ],
+          "hot_samples_ms": [
+            327.14,
+            312.012,
+            316.069
+          ]
+        },
+        "4_gis_dissolve": {
+          "cold_median_ms": 355.981,
+          "hot_median_ms": 319.403,
+          "cold_mean_ms": 425.958,
+          "hot_mean_ms": 307.943,
+          "cold_samples_ms": [
+            354.574,
+            355.981,
+            567.319
+          ],
+          "hot_samples_ms": [
+            259.644,
+            344.781,
+            319.403
+          ]
+        },
+        "5_gis_measure": {
+          "cold_median_ms": 200.963,
+          "hot_median_ms": 181.268,
+          "cold_mean_ms": 199.137,
+          "hot_mean_ms": 176.647,
+          "cold_samples_ms": [
+            176.887,
+            200.963,
+            219.562
+          ],
+          "hot_samples_ms": [
+            154.092,
+            194.58,
+            181.268
+          ]
+        },
+        "6_gis_validate_geometry": {
+          "cold_median_ms": 263.25,
+          "hot_median_ms": 197.346,
+          "cold_mean_ms": 251.808,
+          "hot_mean_ms": 204.713,
+          "cold_samples_ms": [
+            215.26,
+            263.25,
+            276.914
+          ],
+          "hot_samples_ms": [
+            177.842,
+            238.951,
+            197.346
+          ]
+        }
+      }
+    },
+    "full_suite_wall_clock": {
+      "source": "C:\\Users\\RAHUYU\\WorkBuddy\\2026-11-09-10-00-10\\agent-native-gis\\08-runtime-v05-native-push\\evidence\\baseline-v05-full-suite.xml",
+      "tests": 357,
+      "failures": 10,
+      "suite_time_seconds": 148.293,
+      "wall_clock_definition": "JUnit testsuite time 属性（pytest 全量墙钟，非各用例耗时之和）"
+    },
+    "discovery_compact_full_size": {
+      "full_tool_count": 60,
+      "compact_tool_count": 21,
+      "full_bytes": 134037,
+      "compact_bytes": 36223,
+      "compact_over_full_ratio": 0.2702,
+      "schema_bytes_total": 68872,
+      "schema_tokens_estimate": 17218.0,
+      "token_estimate_basis": "UTF-8 字节 / 4 的粗估；本机无 tokenizer，不是真实 BPE token 数，只用于同口径前后对比"
+    },
+    "tool_schema_token_estimate": {
+      "schema_bytes_total": 68872,
+      "tokens_estimate": 17218.0,
+      "basis": "UTF-8 字节 / 4 的粗估；本机无 tokenizer，不是真实 BPE token 数，只用于同口径前后对比"
+    }
+  },
+  "constraints": {
+    "model_api_calls": 0,
+    "external_api_calls": 0,
+    "ports_bound": 0,
+    "online_engine_touched": false
+  }
+}

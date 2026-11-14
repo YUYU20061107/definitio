@@ -1,0 +1,17 @@
+{
+  "imports_ok": true,
+  "engine_started": true,
+  "tool_count": 60,
+  "verb_count": 40,
+  "tool_count_ok": true,
+  "import_ok": true,
+  "write_chain_ok": true,
+  "evidence_has_disposition": true,
+  "evidence_digest_ok": true,
+  "discovery_ok": true,
+  "http_manifest_ok": true,
+  "http_manifest_interface": "definitio-agent-v1",
+  "canonical_available": true,
+  "online_engine_untouched": true,
+  "ok": true
+}

@@ -1,0 +1,1076 @@
+{
+  "counts": {
+    "dispositions": 3,
+    "error_codes": 23,
+    "rules": 8,
+    "specs": 40,
+    "tools": 60,
+    "verbs": 40
+  },
+  "dispositions": [
+    {
+      "meaning": "成果已交付且经真实读回核验：有落库输出、校验通过、后置检查全为真且无无法确认段",
+      "value": "delivered_verified"
+    },
+    {
+      "meaning": "成果已交付但核验不完整：只读结果、无独立读回、存在 unconfirmed 段或检查不完备",
+      "value": "delivered_unverified"
+    },
+    {
+      "meaning": "声明的成果未交付：写入前失败、预演不落库、或交付中断，不得冒充已交付",
+      "value": "not_delivered"
+    }
+  ],
+  "error_codes": [
+    {
+      "action": "inspect_existing_target",
+      "code": "ALREADY_EXISTS",
+      "message": "Inspect the existing target. Check prior request/task status; choose a new explicit target only for a genuinely new operation.",
+      "retry": false
+    },
+    {
+      "action": "disambiguate_handle",
+      "code": "AMBIGUOUS",
+      "message": "Handle resolution found >=2 distinct identities. Supply stable fields that distinguish them; values and ranges are not identity. Never pick one silently.",
+      "retry": false
+    },
+    {
+      "action": "inspect_authorization_scope",
+      "code": "AUTHORIZATION_EXHAUSTED",
+      "message": "The grant's write reservation is used up. Inspect authorization_get and request a new explicitly approved grant.",
+      "retry": false
+    },
+    {
+      "action": "obtain_authorization",
+      "code": "AUTHORIZATION_REQUIRED",
+      "message": "No session grant covers this write. Obtain host/user approval, then authorization_grant or per-call confirm=true with a stable request_id.",
+      "retry": false
+    },
+    {
+      "action": "inspect_authorization_scope",
+      "code": "AUTHORIZATION_SCOPE",
+      "message": "The write left the granted prefix/verb scope. Inspect authorization_get; never widen a grant implicitly.",
+      "retry": false
+    },
+    {
+      "action": "inspect_failure",
+      "code": "BACKEND_ERROR",
+      "message": "Read task_get and its evidence. Current-step rollback does not erase previously committed outputs in a partial workflow.",
+      "retry": false
+    },
+    {
+      "action": "inspect_environment",
+      "code": "BACKEND_UNAVAILABLE",
+      "message": "Run scripts/environment_doctor.py; the declared native backend is not configured here. No silent fallback.",
+      "retry": false
+    },
+    {
+      "action": "obtain_authorization",
+      "code": "CONFIRM_REQUIRED",
+      "message": "Obtain host/user authorization for the exact target and field effects; only then resubmit with confirm=true.",
+      "retry": false
+    },
+    {
+      "action": "explicit_reprojection",
+      "code": "CRS_MISMATCH",
+      "message": "Inspect both CRS definitions and explicitly reproject a new copy to a common CRS before analysis.",
+      "retry": true
+    },
+    {
+      "action": "inspect_capabilities",
+      "code": "DEFER_BLOCKED",
+      "message": "The deferred route is not opened on this engine. Inspect gis_describe_algorithm prerequisites.",
+      "retry": false
+    },
+    {
+      "action": "inspect_dependencies",
+      "code": "DEPENDENCY_BLOCKED",
+      "message": "Other objects still reference this dataset. Inspect the reported impact; destruction never cascades.",
+      "retry": false
+    },
+    {
+      "action": "inspect_capabilities",
+      "code": "DESTRUCTIVE_BLOCKED",
+      "message": "The named destructive route is not opened on this engine. Inspect gis_describe_algorithm prerequisites.",
+      "retry": false
+    },
+    {
+      "action": "inspect_geometry",
+      "code": "DIMENSION_MISMATCH",
+      "message": "Inputs disagree on dimensionality or geometry type. Inspect dataset_describe geometry_types; only 2D is accepted.",
+      "retry": true
+    },
+    {
+      "action": "inspect_geometry",
+      "code": "GEOMETRY_INVALID",
+      "message": "Run read-only gis_validate_geometry, identify offending records; do not silently repair or drop them.",
+      "retry": true
+    },
+    {
+      "action": "correct_arguments",
+      "code": "INVALID_ARGUMENT",
+      "message": "Read the published schema, correct the reported JSON paths. A reused request_id with different arguments requires a NEW key after reviewing prior status.",
+      "retry": true
+    },
+    {
+      "action": "inspect_source_license",
+      "code": "LICENSE_BLOCKED",
+      "message": "The source did not attest allow_import with an evidence_ref. Supply explicit rights evidence; no license is inferred.",
+      "retry": false
+    },
+    {
+      "action": "discover_inputs",
+      "code": "NOT_FOUND",
+      "message": "Call workspace_list; use an actual dataset/task/evidence handle.",
+      "retry": true
+    },
+    {
+      "action": "inspect_capabilities",
+      "code": "NOT_SUPPORTED",
+      "message": "Use gis_describe_algorithm to inspect the declared domain; no silent fallback to another backend.",
+      "retry": false
+    },
+    {
+      "action": "obtain_destructive_preflight",
+      "code": "PREFLIGHT_REQUIRED",
+      "message": "Destructive steps need a fresh single-use destructive_preflight token bound to the exact target and fingerprint.",
+      "retry": false
+    },
+    {
+      "action": "inspect_schema",
+      "code": "SCHEMA_MISMATCH",
+      "message": "Read dataset_describe and provide exact, compatible field names/types; do not silently coerce.",
+      "retry": true
+    },
+    {
+      "action": "discover_inputs",
+      "code": "STALE",
+      "message": "Handle resolution found 0 capture proofs for the declared role and stable fields. Re-read workspace_list; never treat an absent handle as a successful delivery.",
+      "retry": true
+    },
+    {
+      "action": "inspect_task_and_evidence",
+      "code": "TARGET_STATE_UNKNOWN",
+      "message": "STOP automatic retries. Inspect task_get and evidence; target state is not proven safe for replay.",
+      "retry": false
+    },
+    {
+      "action": "supply_crs",
+      "code": "UNKNOWN_CRS",
+      "message": "Provide the known CRS definition; do not guess EPSG:4326.",
+      "retry": true
+    }
+  ],
+  "format": "definitio-handbook-v1",
+  "handle_resolution": {
+    "codes": [
+      "STALE",
+      "AMBIGUOUS"
+    ],
+    "counting_rule": "捕获证明按「角色 + 稳定字段」去重计数；值(value/values)、范围(range/ranges/bounds/extent)、计数(count/feature_count)等易变量不作身份。同一身份的多次观测计 1；0 个身份判 STALE，>=2 个身份判 AMBIGUOUS，恰好 1 个身份才解析为句柄。"
+  },
+  "instructions": "Definitio: the calling Agent owns planning.\n1. workflow_route(intent) selects a verb family. workspace_list filters by name,\nfields and CRS. dataset_describe gives the selected inputs' exact schema.\n2. Compact MCP: gis_describe_algorithm gives the exact schema, gis_call executes it.\nThe full profile exposes direct gis_* tools. Use raster_import for bounded single-band\ngrids; explicit NoData/units/light/convention are required, with no implicit resampling.\n3. Use known CRS and x,y coordinates. reproject moves coordinates; assign_projection\nchanges metadata. Planar analysis uses projected CRS, metres and m². Binary polygon\noperations use identical CRS. gis_validate_geometry reports the valid flag.\n4. task_dry_run computes each step in memory and shows actual fields, CRS, counts\nand effects. task_plan stores the reviewed chain; task_execute uses its exact digest.\n$previous is the immediately preceding dataset output; never reference its new\ntarget name before execution. Step parameters contain operation arguments only:\nput request_id on task_plan and authorization_id on task_execute, never in steps.\nDissolve keeps only its\nexplicit fields ([] means all); clip keeps input fields; spatial_filter selects\nwhole records; merge concatenates matching schemas into a new dataset.\n5. Use existing authorization: confirm=true + stable request_id for one write,\nor authorization_grant once for a session prefix/verbs/count/TTL, then pass\n authorization_id. Scoped writes derive stable request IDs automatically.\nauthorization_get reports use; authorization_revoke ends new writes.\n6. Read summaries first; artifact_view provides JSON-pointer drill-down and cursors.\nartifact_read provides exact JSON chunks. On a lost response reuse identical arguments\nand request_id, or task_get. Check ok, valid and task state; partial chains retain\ncommitted outputs. FAILED/ISOLATED receipts are inspected before creating a new task.",
+  "read_states": [
+    "Known",
+    "Absent",
+    "Unknown"
+  ],
+  "rules": [
+    {
+      "fix": "Inspect details.out_of_scope; nothing outside the plan may be written",
+      "meaning": "Actual writes left the declared scope or a binding changed",
+      "rule": "commit_verification",
+      "where": "task commit, after real readback"
+    },
+    {
+      "fix": "Put request_id on task_plan and authorization_id on task_execute",
+      "meaning": "Step parameters carry operation arguments only",
+      "rule": "operation_parameters_only",
+      "where": "task_plan / task_dry_run step parameters"
+    },
+    {
+      "fix": "Use an existing handle for the first step; never a planned new target name",
+      "meaning": "$previous references the immediately preceding dataset output",
+      "rule": "previous_dataset_output",
+      "where": "task_plan / task_dry_run step references"
+    },
+    {
+      "fix": "Use the canonical name or the exact published surface name",
+      "meaning": "Only names published by the selected surface profile are accepted",
+      "rule": "published_surface_names",
+      "where": "MCP surface adapter"
+    },
+    {
+      "fix": "Re-plan; recovery is only allowed from still-valid results",
+      "meaning": "A committed step's dependency version is no longer valid",
+      "rule": "resume_dependency_invalidated",
+      "where": "task_execute resume gate"
+    },
+    {
+      "fix": "Inspect task_get and evidence, then declare a new plan",
+      "meaning": "Only FAILED plans resume; ISOLATED means unknown external state",
+      "rule": "resume_state_not_recoverable",
+      "where": "task_execute resume gate"
+    },
+    {
+      "fix": "Read details.observation and details.details, correct the unit, object or version",
+      "meaning": "A contract predicate refused the step; details.predicate names it",
+      "rule": "verification_precheck",
+      "where": "before any side effect, in both dry-run and execute"
+    },
+    {
+      "fix": "Re-plan against the current versions; the old plan is refused",
+      "meaning": "An input version or target state changed after planning",
+      "rule": "version_binding_changed",
+      "where": "task_execute commit gate"
+    }
+  ],
+  "source_digest": "5a305bb91d1a66e450477e4adaed9ddc473a31c33e74af5c96e046aa02cfe62d",
+  "verbs": [
+    {
+      "backend": "local-arcpy-10.8",
+      "family": "discovery",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_run_gp",
+      "parameters": [
+        "args",
+        "backend",
+        "confirm",
+        "tool"
+      ],
+      "required_parameters": [
+        "backend",
+        "tool",
+        "args"
+      ],
+      "vid": "V01"
+    },
+    {
+      "backend": "local-geos",
+      "family": "geometry",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_run_processing",
+      "parameters": [
+        "algorithm",
+        "backend",
+        "confirm",
+        "params"
+      ],
+      "required_parameters": [
+        "algorithm",
+        "params"
+      ],
+      "vid": "V02"
+    },
+    {
+      "backend": "local-geos",
+      "family": "discovery",
+      "implemented": true,
+      "level": "R0",
+      "name": "gis_list_algorithms",
+      "parameters": [
+        "backend",
+        "confirm",
+        "family",
+        "implemented_only",
+        "query"
+      ],
+      "required_parameters": [],
+      "vid": "V03"
+    },
+    {
+      "backend": "local-geos",
+      "family": "discovery",
+      "implemented": true,
+      "level": "R0",
+      "name": "gis_describe_algorithm",
+      "parameters": [
+        "algorithm",
+        "backend",
+        "confirm"
+      ],
+      "required_parameters": [
+        "algorithm"
+      ],
+      "vid": "V04"
+    },
+    {
+      "backend": "local-geos",
+      "family": "data",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_create_dataset",
+      "parameters": [
+        "backend",
+        "confirm",
+        "crs",
+        "fields",
+        "target"
+      ],
+      "required_parameters": [
+        "target",
+        "crs",
+        "fields"
+      ],
+      "vid": "V05"
+    },
+    {
+      "backend": "local-geos",
+      "family": "attributes",
+      "implemented": true,
+      "level": "R2",
+      "name": "gis_add_field",
+      "parameters": [
+        "backend",
+        "confirm",
+        "dataset",
+        "field",
+        "target"
+      ],
+      "required_parameters": [
+        "dataset",
+        "target",
+        "field"
+      ],
+      "vid": "V06"
+    },
+    {
+      "backend": "local-geos",
+      "family": "attributes",
+      "implemented": true,
+      "level": "R3",
+      "name": "gis_delete_field",
+      "parameters": [
+        "backend",
+        "confirm",
+        "dataset",
+        "fields",
+        "preflight_id",
+        "target",
+        "target_echo"
+      ],
+      "required_parameters": [
+        "dataset",
+        "target",
+        "fields",
+        "target_echo",
+        "preflight_id"
+      ],
+      "vid": "V07"
+    },
+    {
+      "backend": "local-geos",
+      "family": "attributes",
+      "implemented": true,
+      "level": "R2",
+      "name": "gis_calculate_field",
+      "parameters": [
+        "backend",
+        "confirm",
+        "dataset",
+        "expression",
+        "field",
+        "target"
+      ],
+      "required_parameters": [
+        "dataset",
+        "target",
+        "field",
+        "expression"
+      ],
+      "vid": "V08"
+    },
+    {
+      "backend": "local-geos",
+      "family": "data",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_copy_dataset",
+      "parameters": [
+        "backend",
+        "confirm",
+        "source",
+        "target"
+      ],
+      "required_parameters": [
+        "source",
+        "target"
+      ],
+      "vid": "V09"
+    },
+    {
+      "backend": "local-geos",
+      "family": "data",
+      "implemented": true,
+      "level": "R2",
+      "name": "gis_rename_dataset",
+      "parameters": [
+        "backend",
+        "confirm",
+        "dataset",
+        "new_name"
+      ],
+      "required_parameters": [
+        "dataset",
+        "new_name"
+      ],
+      "vid": "V10"
+    },
+    {
+      "backend": "local-geos",
+      "family": "data",
+      "implemented": true,
+      "level": "R3",
+      "name": "gis_delete_dataset",
+      "parameters": [
+        "backend",
+        "confirm",
+        "dataset",
+        "preflight_id",
+        "target_echo"
+      ],
+      "required_parameters": [
+        "dataset",
+        "target_echo",
+        "preflight_id"
+      ],
+      "vid": "V11"
+    },
+    {
+      "backend": "local-geos",
+      "family": "data",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_merge_datasets",
+      "parameters": [
+        "backend",
+        "confirm",
+        "inputs",
+        "target"
+      ],
+      "required_parameters": [
+        "inputs",
+        "target"
+      ],
+      "vid": "V12"
+    },
+    {
+      "backend": "local-geos",
+      "family": "data",
+      "implemented": true,
+      "level": "R2",
+      "name": "gis_append_dataset",
+      "parameters": [
+        "backend",
+        "confirm",
+        "source",
+        "target"
+      ],
+      "required_parameters": [
+        "source",
+        "target"
+      ],
+      "vid": "V13"
+    },
+    {
+      "backend": "local-geos",
+      "family": "crs",
+      "implemented": true,
+      "level": "R2",
+      "name": "gis_assign_projection",
+      "parameters": [
+        "backend",
+        "confirm",
+        "crs",
+        "dataset",
+        "target"
+      ],
+      "required_parameters": [
+        "dataset",
+        "target",
+        "crs"
+      ],
+      "vid": "V14"
+    },
+    {
+      "backend": "local-geos",
+      "family": "crs",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_reproject",
+      "parameters": [
+        "backend",
+        "confirm",
+        "input",
+        "target",
+        "target_crs"
+      ],
+      "required_parameters": [
+        "input",
+        "target",
+        "target_crs"
+      ],
+      "vid": "V15"
+    },
+    {
+      "backend": "local-geos",
+      "family": "data",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_convert_format",
+      "parameters": [
+        "backend",
+        "confirm",
+        "format",
+        "input",
+        "target"
+      ],
+      "required_parameters": [
+        "input",
+        "target",
+        "format"
+      ],
+      "vid": "V16"
+    },
+    {
+      "backend": "local-geos",
+      "family": "data",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_import_data",
+      "parameters": [
+        "backend",
+        "confirm",
+        "format",
+        "kind",
+        "source_uri",
+        "target_name"
+      ],
+      "required_parameters": [
+        "source_uri",
+        "target_name",
+        "format",
+        "kind"
+      ],
+      "vid": "V17"
+    },
+    {
+      "backend": "local-geos",
+      "family": "geometry",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_buffer",
+      "parameters": [
+        "backend",
+        "confirm",
+        "dissolve",
+        "distance",
+        "input",
+        "target",
+        "unit"
+      ],
+      "required_parameters": [
+        "input",
+        "target",
+        "distance",
+        "unit",
+        "dissolve"
+      ],
+      "vid": "V18"
+    },
+    {
+      "backend": "local-geos",
+      "family": "geometry",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_clip",
+      "parameters": [
+        "backend",
+        "clip_by",
+        "confirm",
+        "input",
+        "target"
+      ],
+      "required_parameters": [
+        "input",
+        "clip_by",
+        "target"
+      ],
+      "vid": "V19"
+    },
+    {
+      "backend": "local-geos",
+      "family": "geometry",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_overlay",
+      "parameters": [
+        "backend",
+        "confirm",
+        "input",
+        "operation",
+        "overlay",
+        "target"
+      ],
+      "required_parameters": [
+        "input",
+        "overlay",
+        "target",
+        "operation"
+      ],
+      "vid": "V20"
+    },
+    {
+      "backend": "local-geos",
+      "family": "geometry",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_dissolve",
+      "parameters": [
+        "backend",
+        "confirm",
+        "fields",
+        "input",
+        "target"
+      ],
+      "required_parameters": [
+        "input",
+        "target",
+        "fields"
+      ],
+      "vid": "V21"
+    },
+    {
+      "backend": "local-geos",
+      "family": "geometry",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_spatial_join",
+      "parameters": [
+        "backend",
+        "confirm",
+        "input",
+        "join",
+        "predicate",
+        "summary",
+        "target"
+      ],
+      "required_parameters": [
+        "input",
+        "join",
+        "target",
+        "predicate",
+        "summary"
+      ],
+      "vid": "V22"
+    },
+    {
+      "backend": "local-geos",
+      "family": "raster",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_raster_calc",
+      "parameters": [
+        "backend",
+        "confirm",
+        "expression",
+        "inputs",
+        "nodata_policy",
+        "target"
+      ],
+      "required_parameters": [
+        "inputs",
+        "expression",
+        "target",
+        "nodata_policy"
+      ],
+      "vid": "V23"
+    },
+    {
+      "backend": "local-geos",
+      "family": "raster",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_slope",
+      "parameters": [
+        "backend",
+        "confirm",
+        "input",
+        "nodata_policy",
+        "target",
+        "unit",
+        "z_factor"
+      ],
+      "required_parameters": [
+        "input",
+        "target",
+        "z_factor",
+        "unit",
+        "nodata_policy"
+      ],
+      "vid": "V24"
+    },
+    {
+      "backend": "local-geos",
+      "family": "raster",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_aspect",
+      "parameters": [
+        "backend",
+        "confirm",
+        "convention",
+        "flat_policy",
+        "input",
+        "nodata_policy",
+        "target",
+        "z_factor"
+      ],
+      "required_parameters": [
+        "input",
+        "target",
+        "z_factor",
+        "convention",
+        "flat_policy",
+        "nodata_policy"
+      ],
+      "vid": "V25"
+    },
+    {
+      "backend": "local-geos",
+      "family": "raster",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_hillshade",
+      "parameters": [
+        "altitude",
+        "azimuth",
+        "backend",
+        "confirm",
+        "input",
+        "nodata_policy",
+        "target",
+        "z_factor"
+      ],
+      "required_parameters": [
+        "input",
+        "target",
+        "z_factor",
+        "azimuth",
+        "altitude",
+        "nodata_policy"
+      ],
+      "vid": "V26"
+    },
+    {
+      "backend": "local-geos",
+      "family": "raster",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_reclassify",
+      "parameters": [
+        "backend",
+        "confirm",
+        "input",
+        "nodata_policy",
+        "rules",
+        "target",
+        "unmapped"
+      ],
+      "required_parameters": [
+        "input",
+        "target",
+        "rules",
+        "unmapped",
+        "nodata_policy"
+      ],
+      "vid": "V27"
+    },
+    {
+      "backend": "local-geos",
+      "family": "raster",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_zonal_statistics",
+      "parameters": [
+        "backend",
+        "confirm",
+        "nodata_policy",
+        "output",
+        "pixel_rule",
+        "statistics",
+        "target",
+        "values",
+        "weighting",
+        "zone_field",
+        "zones"
+      ],
+      "required_parameters": [
+        "zones",
+        "values",
+        "target",
+        "statistics",
+        "output",
+        "zone_field",
+        "nodata_policy",
+        "pixel_rule",
+        "weighting"
+      ],
+      "vid": "V28"
+    },
+    {
+      "backend": "local-geos",
+      "family": "query",
+      "implemented": true,
+      "level": "R0",
+      "name": "gis_field_statistics",
+      "parameters": [
+        "backend",
+        "confirm",
+        "dataset",
+        "fields",
+        "group_by",
+        "null_policy",
+        "output",
+        "statistics"
+      ],
+      "required_parameters": [
+        "dataset",
+        "fields",
+        "group_by",
+        "statistics",
+        "output",
+        "null_policy"
+      ],
+      "vid": "V29"
+    },
+    {
+      "backend": "local-geos",
+      "family": "query",
+      "implemented": true,
+      "level": "R0",
+      "name": "gis_spatial_filter",
+      "parameters": [
+        "backend",
+        "confirm",
+        "predicate",
+        "reference_wkt",
+        "table"
+      ],
+      "required_parameters": [
+        "table",
+        "predicate",
+        "reference_wkt"
+      ],
+      "vid": "V30"
+    },
+    {
+      "backend": "local-geos",
+      "family": "query",
+      "implemented": true,
+      "level": "R0",
+      "name": "gis_measure",
+      "parameters": [
+        "a_wkt",
+        "b_wkt",
+        "backend",
+        "confirm",
+        "crs",
+        "operation"
+      ],
+      "required_parameters": [
+        "operation",
+        "a_wkt",
+        "crs"
+      ],
+      "vid": "V31"
+    },
+    {
+      "backend": "local-geos",
+      "family": "query",
+      "implemented": true,
+      "level": "R0",
+      "name": "gis_validate_geometry",
+      "parameters": [
+        "backend",
+        "confirm",
+        "dataset",
+        "repair"
+      ],
+      "required_parameters": [
+        "dataset",
+        "repair"
+      ],
+      "vid": "V32"
+    },
+    {
+      "backend": "postgis",
+      "family": "services",
+      "implemented": true,
+      "level": "R0",
+      "name": "gis_serve_vector_tile",
+      "parameters": [
+        "attributes",
+        "backend",
+        "geometry_column",
+        "table",
+        "x",
+        "y",
+        "z"
+      ],
+      "required_parameters": [
+        "table",
+        "z",
+        "x",
+        "y",
+        "geometry_column"
+      ],
+      "vid": "V33"
+    },
+    {
+      "backend": "geoserver",
+      "family": "services",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_publish_layer",
+      "parameters": [
+        "backend",
+        "confirm",
+        "dataset_ref",
+        "purpose",
+        "style",
+        "workspace"
+      ],
+      "required_parameters": [
+        "dataset_ref",
+        "workspace",
+        "style",
+        "purpose"
+      ],
+      "vid": "V34"
+    },
+    {
+      "backend": "geoserver",
+      "family": "services",
+      "implemented": true,
+      "level": "R0",
+      "name": "gis_list_services",
+      "parameters": [
+        "backend",
+        "service"
+      ],
+      "required_parameters": [
+        "backend"
+      ],
+      "vid": "V35"
+    },
+    {
+      "backend": "istsos",
+      "family": "services",
+      "implemented": true,
+      "level": "R0",
+      "name": "gis_query_observations",
+      "parameters": [
+        "backend",
+        "count",
+        "datastream_id",
+        "entity",
+        "expand",
+        "filter",
+        "orderby",
+        "select",
+        "skip",
+        "thing_id",
+        "top"
+      ],
+      "required_parameters": [
+        "backend",
+        "entity"
+      ],
+      "vid": "V36"
+    },
+    {
+      "backend": "local-geos",
+      "family": "pointcloud",
+      "implemented": true,
+      "level": "R0",
+      "name": "gis_pointcloud_info",
+      "parameters": [
+        "backend",
+        "input"
+      ],
+      "required_parameters": [
+        "input",
+        "backend"
+      ],
+      "vid": "V37"
+    },
+    {
+      "backend": "local-geos",
+      "family": "pointcloud",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_pointcloud_process",
+      "parameters": [
+        "action",
+        "backend",
+        "confirm",
+        "input",
+        "params",
+        "target"
+      ],
+      "required_parameters": [
+        "input",
+        "target",
+        "action",
+        "params"
+      ],
+      "vid": "V38"
+    },
+    {
+      "backend": "qgis",
+      "family": "map",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_add_layer_from_catalog",
+      "parameters": [
+        "backend",
+        "catalog_id",
+        "confirm",
+        "map",
+        "purpose"
+      ],
+      "required_parameters": [
+        "catalog_id",
+        "map",
+        "purpose"
+      ],
+      "vid": "V39"
+    },
+    {
+      "backend": "qgis",
+      "family": "map",
+      "implemented": true,
+      "level": "R1",
+      "name": "gis_export_map_image",
+      "parameters": [
+        "backend",
+        "confirm",
+        "dpi",
+        "format",
+        "layout",
+        "map",
+        "target_path"
+      ],
+      "required_parameters": [
+        "map",
+        "target_path",
+        "format",
+        "dpi"
+      ],
+      "vid": "V40"
+    }
+  ]
+}

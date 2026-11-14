@@ -1,0 +1,84 @@
+{
+  "format": "definitio-release-staging-v1",
+  "published": false,
+  "pushed": false,
+  "certification": "NOT_CERTIFIED",
+  "files": [
+    {
+      "path": "consistency-suite-v0.1/selfcheck_runner.py",
+      "source": "scripts/consistency_selfcheck.py",
+      "sha256": "5ebd9c6f79ff43efd70207a6f22b9ceae92ba93a961982869039ccd6dcce9568",
+      "bytes": 8026
+    },
+    {
+      "path": "consistency-suite-v0.1/test_v05_handbook.py",
+      "source": "tests/test_v05_handbook.py",
+      "sha256": "df42a21e62973232100229291ccb107ac68a9ae2a95837454612b6120f30c958",
+      "bytes": 3138
+    },
+    {
+      "path": "consistency-suite-v0.1/test_v05_object_header.py",
+      "source": "tests/test_v05_object_header.py",
+      "sha256": "bcd56f1accafbdf0ff0d6bbb2d5d0d44621821b42416ed4f4bb0deda41a97bc5",
+      "bytes": 6170
+    },
+    {
+      "path": "consistency-suite-v0.1/test_v05_protocol.py",
+      "source": "tests/test_v05_protocol.py",
+      "sha256": "9ad2e0590d9eb0223277c88bfffc243aa269c0ac9ea27337de17d7c4bfd10268",
+      "bytes": 9515
+    },
+    {
+      "path": "consistency-suite-v0.1/test_v05_selfcheck.py",
+      "source": "tests/test_v05_selfcheck.py",
+      "sha256": "d2b2613d5612dcfa3e0442fa010a464a51f9c451ab091ef150d5cf0288fb5c90",
+      "bytes": 4177
+    },
+    {
+      "path": "contract/CONTRACT-ADDENDUM-v0.5.md",
+      "source": "docs/CONTRACT-ADDENDUM-v0.5.md",
+      "sha256": "e076b9fe72f73bfad461c713fad3b4c6ccf669f084fdbacfdd1baa7166852180",
+      "bytes": 7093
+    },
+    {
+      "path": "contract/OBJECT-HEADER-v0.1.md",
+      "source": "docs/OBJECT-HEADER-v0.1.md",
+      "sha256": "4d136775ea30b6a822fd29c2324f19ee58f6a01ba0b2cca4f6f3726db38bf48b",
+      "bytes": 4345
+    },
+    {
+      "path": "evidence/clean-install-selftest.json",
+      "source": "evidence/clean-install-selftest.json",
+      "sha256": "3c8049bb684b4c915d942edfa1d65881d8e9f42d23d88fe4a88a1eae33a74126",
+      "bytes": 429
+    },
+    {
+      "path": "evidence/consistency-selfcheck.json",
+      "source": "evidence/consistency-selfcheck.json",
+      "sha256": "19bb0ef663c4316f9883ab49334f020081d6c58ef8d6f61180a8907c8c00b4b8",
+      "bytes": 4071
+    },
+    {
+      "path": "handbook/HANDBOOK.md",
+      "source": "docs/HANDBOOK.md",
+      "sha256": "ece9aac3ed1bfadd4b39d091f489ebea507e01e4c08924714c3eb39f17de5cfb",
+      "bytes": 12820
+    },
+    {
+      "path": "install/CLEAN-INSTALL.md",
+      "source": "docs/CLEAN-INSTALL.md",
+      "sha256": "dddfdc0e435bc14656b7848761ad6837a325834f1c1a40f0a213add33603634a",
+      "bytes": 5406
+    },
+    {
+      "path": "consistency-suite-v0.1/README.md",
+      "source": null,
+      "sha256": "a7a1fe2353b1998bed22d9538490f654c6f01b3fc6e21f9dccf1df32fb1eeaad",
+      "bytes": 927
+    }
+  ],
+  "source_root": "08-runtime-v05-native-push",
+  "tree_sha256": "30f345fd2cf7149b42ccc493f0c10873d518a193277a495bab6f96d0f417977b",
+  "file_count": 12,
+  "stale_files": []
+}

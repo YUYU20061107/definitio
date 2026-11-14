@@ -1,0 +1,568 @@
+........................................................................ [ 19%]
+..........................................F.................F...FFFFFFFF [ 38%]
+.....F.................................................................. [ 58%]
+........................................................................ [ 77%]
+........................................................................ [ 96%]
+............                                                             [100%]
+================================== FAILURES ===================================
+________________ test_cold_start_survives_mcp_host_disconnect _________________
+  + Exception Group Traceback (most recent call last):
+  |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_mcp.py", line 180, in test_cold_start_survives_mcp_host_disconnect
+  |     asyncio.run(connect())
+  |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 195, in run
+  |     return runner.run(main)
+  |            ^^^^^^^^^^^^^^^^
+  |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+  |     return self._loop.run_until_complete(task)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+  |     return future.result()
+  |            ^^^^^^^^^^^^^^^
+  |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_mcp.py", line 175, in connect
+  |     async with stdio_client(params) as (read, write):
+  |                ^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\mcp\client\stdio\__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\anyio\_backends\_asyncio.py", line 871, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\mcp\client\stdio\__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_mcp.py", line 176, in connect
+    |     async with ClientSession(read, write) as session:
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\mcp\shared\session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\anyio\_backends\_asyncio.py", line 871, in __aexit__
+    |     raise BaseExceptionGroup(
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_mcp.py", line 177, in connect
+      |     await session.initialize()
+      |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\mcp\client\session.py", line 183, in initialize
+      |     result = await self.send_request(
+      |              ^^^^^^^^^^^^^^^^^^^^^^^^
+      |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\mcp\shared\session.py", line 306, in send_request
+      |     raise McpError(response_or_error.error)
+      | mcp.shared.exceptions.McpError: Connection closed
+      +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_mcp.py", line 189, in test_cold_start_survives_mcp_host_disconnect
+    subprocess.run(["schtasks.exe", "/End", "/TN", task], capture_output=True, timeout=20, creationflags=subprocess.CREATE_NO_WINDOW)
+  File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 550, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 1028, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 1540, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] 拒绝访问。
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = WindowsPath('C:/Users/RAHUYU/WorkBuddy/2026-11-09-10-00-10/agent-native-gis/08-runtime-v05-native-push/data/clean-v05-tmp/test_cold_start_survives_mcp_h0')
+
+    @pytest.mark.skipif(os.name != "nt", reason="Windows Job Object lifecycle proof")
+    def test_cold_start_survives_mcp_host_disconnect(tmp_path):
+        from mcp import ClientSession, StdioServerParameters
+        from mcp.client.stdio import stdio_client
+        from definitio.lifecycle import task_identity
+        with socket.socket() as sock:
+            sock.bind(("127.0.0.1", 0))
+            port = sock.getsockname()[1]
+        url = f"http://127.0.0.1:{port}"
+        data = tmp_path / "cold-workspace"
+        task = task_identity(port, data)
+        async def connect():
+            params = StdioServerParameters(command=sys.executable,
+                args=[str(ROOT / "run_mcp.py"), "--engine-url", url, "--data-dir", str(data)],
+                cwd=str(tmp_path), env={"PYTHONIOENCODING": "utf-8"})
+            async with stdio_client(params) as (read, write):
+                async with ClientSession(read, write) as session:
+                    await session.initialize()
+                    assert len((await session.list_tools()).tools) == 21
+        try:
+            asyncio.run(connect())
+            time.sleep(.5)
+            with httpx.Client(trust_env=False) as client:
+                manifest = client.get(url + "/api/agent/manifest").json()
+                assert manifest["workspace_path"] == str(data.resolve() / "workspace.sqlite3")
+                assert manifest["engine_root"] == str(ROOT)
+                assert client.get(url + "/api/health").status_code == 200
+        finally:
+            # Only the exact demand task this test created is stopped/removed.
+>           subprocess.run(["schtasks.exe", "/End", "/TN", task], capture_output=True, timeout=20, creationflags=subprocess.CREATE_NO_WINDOW)
+
+tests\test_mcp.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\subprocess.py:550: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\subprocess.py:1028: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <Popen: returncode: None args: ['schtasks.exe', '/End', '/TN', 'DefinitioEng...>
+args = 'schtasks.exe /End /TN DefinitioEngine-b7cfdc91bf7d4456'
+executable = None, preexec_fn = None, close_fds = False, pass_fds = ()
+cwd = None, env = None
+startupinfo = <subprocess.STARTUPINFO object at 0x000001D3F212C4A0>
+creationflags = 134217728, shell = False, p2cread = Handle(1800), p2cwrite = -1
+c2pread = 12, c2pwrite = Handle(2004), errread = 13, errwrite = Handle(1716)
+unused_restore_signals = True, unused_gid = None, unused_gids = None
+unused_uid = None, unused_umask = -1, unused_start_new_session = False
+unused_process_group = -1
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       unused_restore_signals,
+                       unused_gid, unused_gids, unused_uid,
+                       unused_umask,
+                       unused_start_new_session, unused_process_group):
+        """Execute program (MS Windows version)"""
+    
+        assert not pass_fds, "pass_fds not supported on Windows."
+    
+        if isinstance(args, str):
+            pass
+        elif isinstance(args, bytes):
+            if shell:
+                raise TypeError('bytes args is not allowed on Windows')
+            args = list2cmdline([args])
+        elif isinstance(args, os.PathLike):
+            if shell:
+                raise TypeError('path-like args is not allowed when '
+                                'shell is true')
+            args = list2cmdline([args])
+        else:
+            args = list2cmdline(args)
+    
+        if executable is not None:
+            executable = os.fsdecode(executable)
+    
+        # Process startup details
+        if startupinfo is None:
+            startupinfo = STARTUPINFO()
+        else:
+            # bpo-34044: Copy STARTUPINFO since it is modified above,
+            # so the caller can reuse it multiple times.
+            startupinfo = startupinfo.copy()
+    
+        use_std_handles = -1 not in (p2cread, c2pwrite, errwrite)
+        if use_std_handles:
+            startupinfo.dwFlags |= _winapi.STARTF_USESTDHANDLES
+            startupinfo.hStdInput = p2cread
+            startupinfo.hStdOutput = c2pwrite
+            startupinfo.hStdError = errwrite
+    
+        attribute_list = startupinfo.lpAttributeList
+        have_handle_list = bool(attribute_list and
+                                "handle_list" in attribute_list and
+                                attribute_list["handle_list"])
+    
+        # If we were given an handle_list or need to create one
+        if have_handle_list or (use_std_handles and close_fds):
+            if attribute_list is None:
+                attribute_list = startupinfo.lpAttributeList = {}
+            handle_list = attribute_list["handle_list"] = \
+                list(attribute_list.get("handle_list", []))
+    
+            if use_std_handles:
+                handle_list += [int(p2cread), int(c2pwrite), int(errwrite)]
+    
+            handle_list[:] = self._filter_handle_list(handle_list)
+    
+            if handle_list:
+                if not close_fds:
+                    warnings.warn("startupinfo.lpAttributeList['handle_list'] "
+                                  "overriding close_fds", RuntimeWarning)
+    
+                # When using the handle_list we always request to inherit
+                # handles but the only handles that will be inherited are
+                # the ones in the handle_list
+                close_fds = False
+    
+        if shell:
+            startupinfo.dwFlags |= _winapi.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = _winapi.SW_HIDE
+            if not executable:
+                # gh-101283: without a fully-qualified path, before Windows
+                # checks the system directories, it first looks in the
+                # application directory, and also the current directory if
+                # NeedCurrentDirectoryForExePathW(ExeName) is true, so try
+                # to avoid executing unqualified "cmd.exe".
+                comspec = os.environ.get('ComSpec')
+                if not comspec:
+                    system_root = os.environ.get('SystemRoot', '')
+                    comspec = os.path.join(system_root, 'System32', 'cmd.exe')
+                    if not os.path.isabs(comspec):
+                        raise FileNotFoundError('shell not found: neither %ComSpec% nor %SystemRoot% is set')
+                if os.path.isabs(comspec):
+                    executable = comspec
+            else:
+                comspec = executable
+    
+            args = '{} /c "{}"'.format (comspec, args)
+    
+        if cwd is not None:
+            cwd = os.fsdecode(cwd)
+    
+        sys.audit("subprocess.Popen", executable, args, cwd, env)
+    
+        # Start the process
+        try:
+>           hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                                     # no special security
+                                     None, None,
+                                     int(not close_fds),
+                                     creationflags,
+                                     env,
+                                     cwd,
+                                     startupinfo)
+E                                    PermissionError: [WinError 5] 拒绝访问。
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\subprocess.py:1540: PermissionError
+---------------------------- Captured stderr call -----------------------------
+Traceback (most recent call last):
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpcore\_sync\connection.py", line 101, in handle_request
+    raise exc
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpcore\_sync\connection.py", line 78, in handle_request
+    stream = self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpcore\_sync\connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpcore\_backends\sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\definitio\mcp_server.py", line 43, in load_manifest
+    response = client.get("/api/agent/manifest")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpx\_client.py", line 1053, in get
+    return self.request(
+           ^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpx\_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\run_mcp.py", line 9, in <module>
+    main()
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\definitio\mcp_server.py", line 165, in main
+    manifest = load_manifest(engine_url, autostart=not args.no_autostart, data_dir=args.data_dir)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\definitio\mcp_server.py", line 47, in load_manifest
+    ensure_engine(urlparse(engine_url).port, data_dir or ROOT / "data")
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\definitio\lifecycle.py", line 48, in ensure_engine
+    existing = run("/Query", "/TN", task, "/XML")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\definitio\lifecycle.py", line 41, in run
+    return subprocess.run(["schtasks.exe", *parts], capture_output=True, creationflags=flags, timeout=20)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 550, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 1028, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 1540, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] 拒绝访问。
+____________ test_tile_binary_http_download_decode_and_expiration _____________
+
+tmp_path = WindowsPath('C:/Users/RAHUYU/WorkBuddy/2026-11-09-10-00-10/agent-native-gis/08-runtime-v05-native-push/data/clean-v05-tmp/test_tile_binary_http_download0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001D3F250E9F0>
+
+    def test_tile_binary_http_download_decode_and_expiration(tmp_path, monkeypatch):
+        monkeypatch.setenv("DEFINITIO_BACKEND_CONFIG", str(ROOT / "data/backends.json"))
+        app = create_app(tmp_path, ui=False)
+        runtime = app.state.runtime
+        d = source(AgentService(runtime))
+        with TestClient(app) as client:
+            reply = client.post("/api/agent/call", json={"name": "gis_serve_vector_tile", "arguments": {"backend": "postgis", "table": d["id"], "z": 0, "x": 0, "y": 0, "geometry_column": "geometry", "attributes": ["key"]}}).json()
+>           result = value(AgentService(runtime), reply)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:131: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000001D3F274D160>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_043ce1956f81...b6e67bd78f1b8732ff1c03e373bd40789d56f853492d1f72b7f5a478', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_043ce1956f81...b6e67bd78f1b8732ff1c03e373bd40789d56f853492d1f72b7f5a478', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+______ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Things] _______
+
+service = <definitio.agent.AgentService object at 0x000001D3F274E3C0>
+entity = 'Things'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000001D3F274E3C0>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_effb8a82ffd6...f9585f1d3af434fcf9a9d7ee033ed39dadcf7c57a2f40346109fea60', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_effb8a82ffd6...f9585f1d3af434fcf9a9d7ee033ed39dadcf7c57a2f40346109fea60', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_____ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Locations] _____
+
+service = <definitio.agent.AgentService object at 0x000001D3F274D520>
+entity = 'Locations'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000001D3F274D520>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_ffd54ba6e82b...99169d53fc14444a4257f2176194de47b343dde4fdd9e37940f4abe6', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_ffd54ba6e82b...99169d53fc14444a4257f2176194de47b343dde4fdd9e37940f4abe6', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_ test_actual_sta_all_entity_sets_and_exact_odata_downpush[HistoricalLocations] _
+
+service = <definitio.agent.AgentService object at 0x000001D3F274F440>
+entity = 'HistoricalLocations'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000001D3F274F440>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_4dbb95db356e...90cbf8b275cf41e73b3a6d3091a7faae24c55557858ee01f0768cb2a', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_4dbb95db356e...90cbf8b275cf41e73b3a6d3091a7faae24c55557858ee01f0768cb2a', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+____ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Datastreams] ____
+
+service = <definitio.agent.AgentService object at 0x000001D3F272C170>
+entity = 'Datastreams'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000001D3F272C170>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_2a1da2e04425...40f150c474712e5ed061126a544a05f25503fa89fbd4e8ca751b6bf0', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_2a1da2e04425...40f150c474712e5ed061126a544a05f25503fa89fbd4e8ca751b6bf0', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+______ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Sensors] ______
+
+service = <definitio.agent.AgentService object at 0x000001D3F274E2A0>
+entity = 'Sensors'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000001D3F274E2A0>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_0e35f284b6ba...7ea553f4bc961739675ac0bf9d10ba2f4552f0b008ce37af85de8cea', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_0e35f284b6ba...7ea553f4bc961739675ac0bf9d10ba2f4552f0b008ce37af85de8cea', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_ test_actual_sta_all_entity_sets_and_exact_odata_downpush[ObservedProperties] _
+
+service = <definitio.agent.AgentService object at 0x000001D3F250E6C0>
+entity = 'ObservedProperties'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000001D3F250E6C0>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_effe96667758...be88411cac9598cd9acee58f269ba473d5b800b4ebe0fab9a2dbdd2a', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_effe96667758...be88411cac9598cd9acee58f269ba473d5b800b4ebe0fab9a2dbdd2a', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+___ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Observations] ____
+
+service = <definitio.agent.AgentService object at 0x000001D3F21D2300>
+entity = 'Observations'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000001D3F21D2300>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_8834b51b9b67...9ed618ea0407cb211f2c0d78d561b7014f3b9b4b411bf78c7f72b9e1', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_8834b51b9b67...9ed618ea0407cb211f2c0d78d561b7014f3b9b4b411bf78c7f72b9e1', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_ test_actual_sta_all_entity_sets_and_exact_odata_downpush[FeaturesOfInterest] _
+
+service = <definitio.agent.AgentService object at 0x000001D3F2741940>
+entity = 'FeaturesOfInterest'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000001D3F2741940>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_6dda2e7a8326...a978de9710ef9d1952496ed47ac62df3b2ba21a1c8f932babe72a350', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_6dda2e7a8326...a978de9710ef9d1952496ed47ac62df3b2ba21a1c8f932babe72a350', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+__________ test_actual_services_filter_and_unknown_service_rejection __________
+
+service = <definitio.agent.AgentService object at 0x000001D3F250EC00>
+
+    def test_actual_services_filter_and_unknown_service_rejection(service):
+>       result = value(service, service.call("gis_list_services", {"backend": "geoserver", "service": "WMS"}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:178: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000001D3F250EC00>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_62270ac972df...612cd82c61fec7019a44f7bf5ae0c8b1f355fa91d185276b679b8128', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_62270ac972df...612cd82c61fec7019a44f7bf5ae0c8b1f355fa91d185276b679b8128', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+============================== warnings summary ===============================
+..\..\..\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\RAHUYU\WorkBuddy\2026-11-14-03-15-42\clean-venv-v05\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_mcp.py::test_cold_start_survives_mcp_host_disconnect - Perm...
+FAILED tests/test_native_completion.py::test_tile_binary_http_download_decode_and_expiration
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Things]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Locations]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[HistoricalLocations]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Datastreams]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Sensors]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[ObservedProperties]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Observations]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[FeaturesOfInterest]
+FAILED tests/test_native_completion.py::test_actual_services_filter_and_unknown_service_rejection
+11 failed, 361 passed, 1 warning in 236.24s (0:03:56)

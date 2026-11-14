@@ -169,3 +169,49 @@ def object_header(document, *, operation=None, inputs=(), scope=None, persistenc
                                        "metadata_uri": f"definitio://datasets/{document['id']}/metadata",
                                        "file_artifact": None},
     }
+
+
+# --- Object header v0.1 (T2, additive) ---------------------------------------
+# Normative text: docs/OBJECT-HEADER-v0.1.md. This checker is deliberately
+# non-enforcing at runtime: it is a consistency assertion, not a new gate, so
+# no existing write path or frozen test verdict changes.
+OBJECT_HEADER_SPEC = "object-header-v0.1"
+OBJECT_HEADER_SLOTS = ("crs", "extent", "field_summary", "version")
+_EXTENT_KEYS = ("bounds", "grid", "point_count", "resource_kind", "result_keys")
+_FIELD_SUMMARY_KEYS = ("fields", "grid", "point_dimensions", "resource_kind", "result_keys")
+
+
+def _header_present(value):
+    return value is not None and value != "" and value != {}
+
+
+def validate_object_header(header):
+    """Check the four normative slots; return missing slot names for test failures."""
+    if not isinstance(header, dict):
+        return {"ok": False, "spec": OBJECT_HEADER_SPEC, "object_type": None,
+                "missing": list(OBJECT_HEADER_SLOTS), "present": {}, "problem": "header_not_object"}
+    missing, present = [], {}
+    crs = header.get("crs")
+    if isinstance(crs, dict) and _header_present(crs.get("code")):
+        present["crs"] = crs.get("code")
+    else:
+        missing.append("crs")
+    version = (header.get("identity") or {}).get("version") or {}
+    if _header_present(version.get("version_id")) and _header_present(version.get("fingerprint")):
+        present["version"] = version.get("version_id")
+    else:
+        missing.append("version")
+    structure = header.get("structure") or {}
+    extent = next((key for key in _EXTENT_KEYS if _header_present(structure.get(key))), None)
+    if extent:
+        present["extent"] = f"structure.{extent}"
+    else:
+        missing.append("extent")
+    summary = next((key for key in _FIELD_SUMMARY_KEYS if _header_present(structure.get(key))), None)
+    if summary:
+        present["field_summary"] = f"structure.{summary}"
+    else:
+        missing.append("field_summary")
+    return {"ok": not missing, "spec": OBJECT_HEADER_SPEC,
+            "object_type": (header.get("identity") or {}).get("object_type"),
+            "missing": missing, "present": present}

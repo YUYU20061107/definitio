@@ -1,0 +1,247 @@
+........................................................................ [ 20%]
+............................................................F...FFFFFFFF [ 40%]
+.....F.................................................................. [ 60%]
+........................................................................ [ 80%]
+.....................................................................    [100%]
+================================== FAILURES ===================================
+____________ test_tile_binary_http_download_decode_and_expiration _____________
+
+tmp_path = WindowsPath('C:/Users/RAHUYU/WorkBuddy/2026-11-09-10-00-10/agent-native-gis/08-runtime-v05-native-push/data/baseline-v05-tmp/test_tile_binary_http_download0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002647E1CA060>
+
+    def test_tile_binary_http_download_decode_and_expiration(tmp_path, monkeypatch):
+        monkeypatch.setenv("DEFINITIO_BACKEND_CONFIG", str(ROOT / "data/backends.json"))
+        app = create_app(tmp_path, ui=False)
+        runtime = app.state.runtime
+        d = source(AgentService(runtime))
+        with TestClient(app) as client:
+            reply = client.post("/api/agent/call", json={"name": "gis_serve_vector_tile", "arguments": {"backend": "postgis", "table": d["id"], "z": 0, "x": 0, "y": 0, "geometry_column": "geometry", "attributes": ["key"]}}).json()
+>           result = value(AgentService(runtime), reply)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:131: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000002647DE5EDE0>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_abc720edfb11...6ccdd601c4099fd7aa384951d91a557224a9b49c9a516fe9e4129120', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_abc720edfb11...6ccdd601c4099fd7aa384951d91a557224a9b49c9a516fe9e4129120', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+______ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Things] _______
+
+service = <definitio.agent.AgentService object at 0x000002647E1C8FB0>
+entity = 'Things'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000002647E1C8FB0>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_f40b7026b040...c0028288c7abc93cde903f7a97a1024c978cdedd132d2c31d97fc5eb', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_f40b7026b040...c0028288c7abc93cde903f7a97a1024c978cdedd132d2c31d97fc5eb', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_____ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Locations] _____
+
+service = <definitio.agent.AgentService object at 0x000002647E213920>
+entity = 'Locations'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000002647E213920>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_82e9cf235809...71aacbb421f75a4a11fc8a5ae10cc68789057a4f51b417509852ebbc', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_82e9cf235809...71aacbb421f75a4a11fc8a5ae10cc68789057a4f51b417509852ebbc', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_ test_actual_sta_all_entity_sets_and_exact_odata_downpush[HistoricalLocations] _
+
+service = <definitio.agent.AgentService object at 0x000002647E211AC0>
+entity = 'HistoricalLocations'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000002647E211AC0>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_98732e83a915...5313cbf466e2a5943c9ddc9554d941c428d68a347712d8a6cd0a2dd2', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_98732e83a915...5313cbf466e2a5943c9ddc9554d941c428d68a347712d8a6cd0a2dd2', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+____ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Datastreams] ____
+
+service = <definitio.agent.AgentService object at 0x000002647DBCED50>
+entity = 'Datastreams'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000002647DBCED50>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_7fe2cf78a29e...94fe3e4caec4172f32b3a484701c0b8128a0a02ee002d3f601092db0', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_7fe2cf78a29e...94fe3e4caec4172f32b3a484701c0b8128a0a02ee002d3f601092db0', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+______ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Sensors] ______
+
+service = <definitio.agent.AgentService object at 0x000002647E1CA780>
+entity = 'Sensors'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000002647E1CA780>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_4182f09da989...a2ab7f76f0c7314d8ecb4719505e45641189184a9434b0695fa17efe', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_4182f09da989...a2ab7f76f0c7314d8ecb4719505e45641189184a9434b0695fa17efe', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_ test_actual_sta_all_entity_sets_and_exact_odata_downpush[ObservedProperties] _
+
+service = <definitio.agent.AgentService object at 0x000002647E1CB6E0>
+entity = 'ObservedProperties'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000002647E1CB6E0>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_34476fc5c67f...c94603e4720aa854fad908b8d370f0a495a98d5a12478fae44f6a65b', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_34476fc5c67f...c94603e4720aa854fad908b8d370f0a495a98d5a12478fae44f6a65b', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+___ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Observations] ____
+
+service = <definitio.agent.AgentService object at 0x000002647E1BA840>
+entity = 'Observations'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000002647E1BA840>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_1f4f0c4e95c0...8d9c93bc0673c81d62e1a30b594e6d503091ff07bb62a525609f0080', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_1f4f0c4e95c0...8d9c93bc0673c81d62e1a30b594e6d503091ff07bb62a525609f0080', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_ test_actual_sta_all_entity_sets_and_exact_odata_downpush[FeaturesOfInterest] _
+
+service = <definitio.agent.AgentService object at 0x000002647E1CA1B0>
+entity = 'FeaturesOfInterest'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000002647E1CA1B0>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_73df375f2d6d...05d27a906c661a299d1e60eebf85ceff674aa178d43c8f701427915a', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_73df375f2d6d...05d27a906c661a299d1e60eebf85ceff674aa178d43c8f701427915a', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+__________ test_actual_services_filter_and_unknown_service_rejection __________
+
+service = <definitio.agent.AgentService object at 0x000002647E212C30>
+
+    def test_actual_services_filter_and_unknown_service_rejection(service):
+>       result = value(service, service.call("gis_list_services", {"backend": "geoserver", "service": "WMS"}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:178: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x000002647E212C30>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_69135e68025c...97840fca7966d5bb45223325f19d76e01cdc667de564e58d7bc7637f', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_69135e68025c...97840fca7966d5bb45223325f19d76e01cdc667de564e58d7bc7637f', ...}, 'replayed': False, 'outputs': [], 'results': []}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+============================== warnings summary ===============================
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_native_completion.py::test_tile_binary_http_download_decode_and_expiration
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Things]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Locations]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[HistoricalLocations]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Datastreams]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Sensors]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[ObservedProperties]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Observations]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[FeaturesOfInterest]
+FAILED tests/test_native_completion.py::test_actual_services_filter_and_unknown_service_rejection
+10 failed, 347 passed, 1 warning in 148.34s (0:02:28)

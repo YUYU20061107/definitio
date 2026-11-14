@@ -27,6 +27,9 @@ ACCEPTANCE = {
 NEW_TEST_FILES = ("test_rollout_projection.py", "test_rollout_predicates.py", "test_rollout_native_predicates.py",
                   "test_rollout_commit_preview.py", "test_rollout_discovery.py", "test_rollout_planner.py",
                   "test_rollout_inventory.py")
+V05_TEST_FILES = ("test_v05_protocol.py", "test_v05_object_header.py",
+                  "test_v05_handbook.py", "test_v05_selfcheck.py")
+ALL_NEW_TEST_FILES = NEW_TEST_FILES + V05_TEST_FILES
 ROLLOUT_ACCEPTANCE = {
     "R1_three_surface_projection_consistency": "test_three_surfaces_emit_the_identical_projection_for_vector",
     "R1_geographic_axis_order_survives": "test_geographic_axis_order_survives_all_three_surfaces",
@@ -169,25 +172,33 @@ def classify_failures(suite):
 
 
 def reconcile_baseline(baseline_xml, suite):
-    """Per-ID reconciliation: no existing test may silently change verdict."""
+    """Per-ID reconciliation against THIS tree's own pre-change baseline.
+
+    v05 change of口径: new test IDs are listed separately instead of being
+    filtered by a hard-coded file list. An unchanged existing verdict can never
+    be turned into a failure by adding tests, and new tests can never hide a
+    changed or missing existing ID. The 357 existing IDs remain the sole gate.
+    """
     if not Path(baseline_xml).exists():
         return {"status": "NOT_RUN", "reason": f"missing baseline {baseline_xml}"}
     before = {case["id"]: case["status"] for case in collect_suite(baseline_xml, baseline_xml, 0)["cases"]}
-    new_classes = {"tests." + name[:-3] for name in NEW_TEST_FILES}
-    after = {case["id"]: case["status"] for case in suite["cases"] if case["file"] not in new_classes}
+    after_all = {case["id"]: case["status"] for case in suite["cases"]}
+    after = {key: value for key, value in after_all.items() if key in before}
     changes = [{"id": key, "before": before[key], "after": after[key]} for key in before
                if key in after and before[key] != after[key]]
-    missing, added = sorted(set(before) - set(after)), sorted(set(after) - set(before))
-    return {"status": "PASS" if not changes and not missing and not added else "FAIL",
+    missing, added = sorted(set(before) - set(after)), sorted(set(after_all) - set(before))
+    return {"status": "PASS" if not changes and not missing else "FAIL",
             "baseline_ids": len(before), "final_existing_ids": len(after),
             "baseline_passed": sum(v == "PASS" for v in before.values()),
             "final_existing_passed": sum(v == "PASS" for v in after.values()),
             "verdict_changes": changes, "missing_ids": missing, "added_ids": added,
+            "new_test_count": len(added),
+            "reconciliation_rule": "既有 ID 逐项对账；新增 ID 单列，不参与零变化判定",
             "baseline_xml": str(baseline_xml)}
 
 
 def render_markdown(report):
-    lines = ["# Definitio D1–D5 横向推广（v04 rollout）自动化报告", "",
+    lines = ["# Definitio 第三轮长线工程（v05 native-push）自动化报告", "",
              f"- 版本目录：`{report['version_directory']}`",
              f"- 定名依据：{report['naming_rationale']}",
              f"- 源码摘要 source_digest：`{report['source_digest']}`",
@@ -270,7 +281,7 @@ def main():
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--workbench", type=Path, default=ROOT.parent)
     parser.add_argument("--g1-baseline", type=Path, default=Path("D:/agent-native-gis/evidence/baseline-sha256-before.json"))
-    parser.add_argument("--baseline-commit", default="c6d41ba")
+    parser.add_argument("--baseline-commit", default="4040567")
     parser.add_argument("--baseline-xml", type=Path, default=None,
                         help="pre-change full-suite junitxml for per-ID reconciliation")
     parser.add_argument("--out", type=Path, default=ROOT / "evidence")
@@ -299,11 +310,11 @@ def main():
     report = {
         "format": "definitio-golden-chain-report-v1",
         "version_directory": str(args.root),
-        "naming_rationale": "现场编号 00-baseline…06-runtime-v03-golden-chain 已占用，续 07-runtime-v04-rollout；scripts/audit_g1.py 的默认 root=parents[2] 只有在该布局下才指向工作台根",
+        "naming_rationale": "以 07-runtime-v04-rollout 终局（提交 4040567）为起点续 08-runtime-v05-native-push；本地分支 native-push-v05、无远端；06/07 两树只读、G1 基线 59 文件不动",
         "source_digest": versions["source_digest"], "versions": versions,
         "file_manifest": files, "file_count": len(files),
         "changes": change_set(args.root, args.baseline_commit),
-        "new_test_files": sorted(name for name in NEW_TEST_FILES if (args.root / "tests" / name).exists()),
+        "new_test_files": sorted(name for name in ALL_NEW_TEST_FILES if (args.root / "tests" / name).exists()),
         "g1_baseline": g1_guard(args.workbench, args.g1_baseline),
         "discovery_consistency": {k: v for k, v in consistency.items() if k != "tools"},
         "discovery_tools_inconsistent": [t for t in consistency["tools"] if not t["consistent"]],
@@ -326,7 +337,9 @@ def main():
         ],
     }
     if suite:
-        new_ids = [c for c in suite["cases"] if c["file"].split(".")[-1] + ".py" in NEW_TEST_FILES]
+        baseline_ids = ({c["id"] for c in collect_suite(baseline_xml, baseline_xml, 0)["cases"]}
+                        if Path(baseline_xml).exists() else set())
+        new_ids = [c for c in suite["cases"] if c["id"] not in baseline_ids]
         report["new_tests"] = {"total": len(new_ids), "passed": sum(c["status"] == "PASS" for c in new_ids),
                                "failed": sum(c["status"] != "PASS" for c in new_ids),
                                "ids": [c["id"] for c in new_ids]}

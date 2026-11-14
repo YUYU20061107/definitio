@@ -1,0 +1,164 @@
+{
+  "format": "definitio-consistency-selfcheck-v1",
+  "scope": "checker_can_fail_does_not_mean_engine_certified",
+  "cases": [
+    {
+      "case": "disposition_missing_is_caught",
+      "expected_ok": false,
+      "actual_ok": false,
+      "caught": true,
+      "detail": "no disposition field"
+    },
+    {
+      "case": "disposition_unknown_value_is_caught",
+      "expected_ok": false,
+      "actual_ok": false,
+      "caught": true,
+      "detail": "value outside三值"
+    },
+    {
+      "case": "stale_disguised_as_success_is_caught",
+      "expected_ok": false,
+      "actual_ok": false,
+      "caught": true,
+      "detail": "not_delivered 却带 output_ref"
+    },
+    {
+      "case": "clean_envelope_passes",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": "clean"
+    },
+    {
+      "case": "injected_read_failure_is_unknown",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": "read failure"
+    },
+    {
+      "case": "read_failure_never_becomes_absent",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": "must not degrade to Absent"
+    },
+    {
+      "case": "absent_field_is_absent",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": "field not present"
+    },
+    {
+      "case": "known_field_is_known",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": "field present"
+    },
+    {
+      "case": "zero_hits_is_stale",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": "0 命中"
+    },
+    {
+      "case": "two_identities_is_ambiguous",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": ">=2 命中"
+    },
+    {
+      "case": "one_identity_repeated_is_not_ambiguous",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": "同一身份两次观测计 1"
+    },
+    {
+      "case": "value_as_identity_is_refused",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": "值与范围不作身份"
+    },
+    {
+      "case": "recovery_registers_STALE",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": "RECOVERY 已登记"
+    },
+    {
+      "case": "recovery_registers_AMBIGUOUS",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": "RECOVERY 已登记"
+    },
+    {
+      "case": "clean_object_header_passes",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": "四槽齐全"
+    },
+    {
+      "case": "missing_crs_is_caught",
+      "expected_ok": false,
+      "actual_ok": false,
+      "caught": true,
+      "detail": "缺 crs"
+    },
+    {
+      "case": "missing_version_is_caught",
+      "expected_ok": false,
+      "actual_ok": false,
+      "caught": true,
+      "detail": "缺 version"
+    },
+    {
+      "case": "missing_fields_is_caught",
+      "expected_ok": false,
+      "actual_ok": false,
+      "caught": true,
+      "detail": "缺 fields"
+    },
+    {
+      "case": "missing_extent_is_caught",
+      "expected_ok": false,
+      "actual_ok": false,
+      "caught": true,
+      "detail": "缺 extent"
+    },
+    {
+      "case": "handbook_matches_live_catalog",
+      "expected_ok": true,
+      "actual_ok": true,
+      "caught": true,
+      "detail": "手册与活目录一致"
+    },
+    {
+      "case": "handbook_missing_a_verb_is_caught",
+      "expected_ok": false,
+      "actual_ok": false,
+      "caught": true,
+      "detail": "少一个动词"
+    }
+  ],
+  "case_count": 21,
+  "violations_detected": 8,
+  "clean_passed": 13,
+  "failures": [],
+  "ok": true,
+  "certification": "NOT_CERTIFIED",
+  "dispositions_known": [
+    "delivered_verified",
+    "delivered_unverified",
+    "not_delivered"
+  ]
+}

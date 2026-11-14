@@ -194,6 +194,8 @@ RECOVERY = {
     "DESTRUCTIVE_BLOCKED": ("inspect_capabilities", False, "The named destructive route is not opened on this engine. Inspect gis_describe_algorithm prerequisites."),
     "DEFER_BLOCKED": ("inspect_capabilities", False, "The deferred route is not opened on this engine. Inspect gis_describe_algorithm prerequisites."),
     "DIMENSION_MISMATCH": ("inspect_geometry", True, "Inputs disagree on dimensionality or geometry type. Inspect dataset_describe geometry_types; only 2D is accepted."),
+    "STALE": ("discover_inputs", True, "Handle resolution found 0 capture proofs for the declared role and stable fields. Re-read workspace_list; never treat an absent handle as a successful delivery."),
+    "AMBIGUOUS": ("disambiguate_handle", False, "Handle resolution found >=2 distinct identities. Supply stable fields that distinguish them; values and ranges are not identity. Never pick one silently."),
 }
 
 
@@ -600,8 +602,14 @@ class AgentService:
                 return success({k: e[k] for k in ("requested_parameters", "effective_parameters", "parameter_rewrites")})
             keys = ("id", "task_id", "step_id", "verb", "vid", "backend", "implementation_route", "input_unchanged", "input_feature_count",
                     "output_feature_count", "processed_feature_count", "result_empty", "empty_reason", "output_ref", "output_fingerprint",
-                    "evidence_digest", "atomicity", "versions", "verification_limits", "semantic")
-            return success({"evidence": {k: e.get(k) for k in keys}, "resource_uri": f"definitio://evidence/{e['id']}"})
+                    "evidence_digest", "atomicity", "versions", "verification_limits", "semantic", "disposition")
+            # Read path: tri-state annotation of readback fields only. It never
+            # re-labels disposition; that field is written once on the write path.
+            from .protocol import read_state
+            read_states = {field: read_state(lambda _id: e, a["evidence_id"], field)
+                           for field in ("output_ref", "postcondition_checks", "semantic")}
+            return success({"evidence": {k: e.get(k) for k in keys}, "read_states": read_states,
+                            "resource_uri": f"definitio://evidence/{e['id']}"})
         if name == "artifact_read":
             value = self.artifact(a["uri"])
             content = canonical(value)

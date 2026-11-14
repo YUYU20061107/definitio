@@ -1,10 +1,10 @@
-# Definitio D1–D5 横向推广（v04 rollout）自动化报告
+# Definitio 第三轮长线工程（v05 native-push）自动化报告
 
 - 版本目录：`.`
-- 定名依据：现场编号 00-baseline…06-runtime-v03-golden-chain 已占用，续 07-runtime-v04-rollout；scripts/audit_g1.py 的默认 root=parents[2] 只有在该布局下才指向工作台根
-- 源码摘要 source_digest：`87d73c5b1b39bca400eb6cb45111e05a8da23467fe040180a8cd0f09ef70230e`
+- 定名依据：以 07-runtime-v04-rollout 终局（提交 4040567）为起点续 08-runtime-v05-native-push；本地分支 native-push-v05、无远端；06/07 两树只读、G1 基线 59 文件不动
+- 源码摘要 source_digest：`05aa24b42cf0aff9e5394f62deab2c8408c0c79e20c822f43812081c35450aba`
 - 运行时：0.2.0-dev｜shapely 2.1.2｜GEOS 3.13.1｜GDAL 3.12.2
-- 文件总数：112
+- 文件总数：160
 
 ## G1 基线
 
@@ -21,9 +21,9 @@
 
 ## 全量回归
 
-- 总数 357｜PASS 347｜FAIL 10｜ERROR 0｜SKIP 0｜耗时 146.234s
-- 新增测试：84（PASS 84 / FAIL 0）
-- 既有测试：273（PASS 263 / FAIL 10）
+- 总数 385｜PASS 374｜FAIL 11｜ERROR 0｜SKIP 0｜耗时 287.332s
+- 新增测试：28（PASS 28 / FAIL 0）
+- 既有测试：357（PASS 346 / FAIL 11）
 - 证据：`evidence\regression-full-suite.xml`、`evidence\regression-full-suite.log`
 
 | 文件 | 总数 | PASS | FAIL |
@@ -37,7 +37,7 @@
 | tests.test_golden_resume | 7 | 7 | 0 |
 | tests.test_golden_semantics | 7 | 7 | 0 |
 | tests.test_golden_verifier | 10 | 10 | 0 |
-| tests.test_mcp | 11 | 11 | 0 |
+| tests.test_mcp | 11 | 10 | 1 |
 | tests.test_native_completion | 37 | 27 | 10 |
 | tests.test_pointcloud | 18 | 18 | 0 |
 | tests.test_processing_channel | 4 | 4 | 0 |
@@ -51,33 +51,38 @@
 | tests.test_runtime | 64 | 64 | 0 |
 | tests.test_surface | 13 | 13 | 0 |
 | tests.test_usability | 11 | 11 | 0 |
+| tests.test_v05_handbook | 6 | 6 | 0 |
+| tests.test_v05_object_header | 3 | 3 | 0 |
+| tests.test_v05_protocol | 12 | 12 | 0 |
+| tests.test_v05_selfcheck | 7 | 7 | 0 |
 | tests.test_workstation | 11 | 11 | 0 |
 
 ### 既有测试逐 ID 对账
 
-- 状态：**PASS**
-- 基线 273 ID（PASS 263） → 终局既有 273 ID（PASS 263）
-- 判定变化：无
-- 缺失 ID：无；多出 ID：无
+- 状态：**FAIL**
+- 基线 357 ID（PASS 347） → 终局既有 357 ID（PASS 346）
+- 判定变化：[{'id': 'tests.test_mcp::test_cold_start_survives_mcp_host_disconnect', 'before': 'PASS', 'after': 'FAIL'}]
+- 缺失 ID：无；多出 ID：['tests.test_v05_handbook::test_checked_in_handbook_matches_the_live_catalog', 'tests.test_v05_handbook::test_cli_check_reads_out_from_the_live_catalog', 'tests.test_v05_handbook::test_drift_is_actually_detected', 'tests.test_v05_handbook::test_handbook_carries_the_v05_protocol_sections', 'tests.test_v05_handbook::test_handbook_mirrors_every_live_registry', 'tests.test_v05_handbook::test_json_render_is_stable_and_complete', 'tests.test_v05_object_header::test_object_header_v01_covers_all_40_verbs_without_blanks', 'tests.test_v05_object_header::test_object_header_v01_holds_on_real_runtime_outputs', 'tests.test_v05_object_header::test_object_header_v01_names_each_missing_slot', 'tests.test_v05_protocol::test_capture_proof_counting_ignores_values_and_ranges', 'tests.test_v05_protocol::test_disposition_delivered_unverified_on_a_readonly_result', 'tests.test_v05_protocol::test_disposition_delivered_verified_on_a_real_write', 'tests.test_v05_protocol::test_disposition_is_additive_and_digest_still_matches_envelope', 'tests.test_v05_protocol::test_disposition_never_claims_an_independent_oracle', 'tests.test_v05_protocol::test_disposition_not_delivered_is_persisted_and_read_back', 'tests.test_v05_protocol::test_handle_resolution_ambiguous_on_two_identities', 'tests.test_v05_protocol::test_handle_resolution_stale_on_zero_hits', 'tests.test_v05_protocol::test_not_delivered_claiming_an_output_is_a_detectable_violation', 'tests.test_v05_protocol::test_protocol_codes_are_registered_on_the_discovery_surface', 'tests.test_v05_protocol::test_read_path_does_not_relabel_disposition', 'tests.test_v05_protocol::test_read_tristate_known_absent_and_unknown', 'tests.test_v05_selfcheck::test_clean_samples_do_not_false_positive', 'tests.test_v05_selfcheck::test_cli_selfcheck_exit_code_is_real', 'tests.test_v05_selfcheck::test_every_seeded_violation_is_actually_caught', 'tests.test_v05_selfcheck::test_no_seeded_violation_is_missed', 'tests.test_v05_selfcheck::test_release_staging_manifest_matches_its_files', 'tests.test_v05_selfcheck::test_selfcheck_report_is_reproducible', 'tests.test_v05_selfcheck::test_staging_contains_no_credentials_or_engine_data']
 
 ### 失败分类
 
 - 环境阻塞（既有，非本轮引入）：10
-- 非预期失败：0
+- 非预期失败：1 — ['tests.test_mcp::test_cold_start_survives_mcp_host_disconnect']
 - 环境阻塞根因：缺 data/backends.json（本机 PostGIS/GeoServer 沙箱配置，含凭据，不随源码包）；STA 用例还需外部 istSOS 端点，违反本轮离线红线。completion.py:90 在读取配置处即返回 BACKEND_UNAVAILABLE，未发起任何网络请求。同 10 项在源工作站 D:/agent-native-gis 同样失败（10 FAIL / 27 PASS）。
 
 ### 失败逐项
 
-- `tests.test_native_completion::test_tile_binary_http_download_decode_and_expiration` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_86fa360128ea...a795fad24cfa31e12cf257845fa942185862566d7a79f881128955bb', ...}
-- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Things]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_70982df1217e...643ad5fcd189913e8d461e612cd1ddd19399afd59ed720cdd201ea4d', ...}
-- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Locations]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_b3cb763470c3...7cff70a3f6bb3a55d907bc8ad106f1b3984ff75db46e8493508f9072', ...}
-- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[HistoricalLocations]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_14c66f17c9cf...da987f7cf0aca19a67d6f527ddee30e91ea0c394f639893d73da0ac4', ...}
-- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Datastreams]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_6bcef6fc1859...254223d51ad631f3ff839a1516cf6c522d6326252773507a0303181d', ...}
-- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Sensors]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_6f8bf15468d7...b5bd2628460d8ae813d86450e17f85cf67b1e4da91ee22f1a7fec433', ...}
-- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[ObservedProperties]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_1ac9f9babc97...86e97f1046ae904afd07b1bdaa8e8ae2d315564740d229bc285f9bd1', ...}
-- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Observations]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_6d7ec6af2d36...c3d10ff2c9859f9783da69dae809efd71e9d525c5e9ee2ee2e1e3d7b', ...}
-- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[FeaturesOfInterest]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_48e40ba826d4...53910d301aebd8b9a40ae38ca6247bbd2e00f80ff9ab05dc550fa121', ...}
-- `tests.test_native_completion::test_actual_services_filter_and_unknown_service_rejection` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_0bb6e39efe96...4be07d91fee72fd6482ba6cf1f41c2764675c07f3456db569aa33e25', ...}
+- `tests.test_mcp::test_cold_start_survives_mcp_host_disconnect` — FAIL — PermissionError: [WinError 5] 拒绝访问。
+- `tests.test_native_completion::test_tile_binary_http_download_decode_and_expiration` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_3708801bbd7e...cad0df2f42b8a0925e5283ec488614e687f2ba6657514d62ca6918ee', ...}
+- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Things]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_3789c662ece2...1c0ce431ad6ef1ce75070b1aa720ce6ef17a58f10c29df2e0c93b1b8', ...}
+- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Locations]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_0615772f853f...1bd05ddd4e4d0f4ecbfc8f82ed86bc01ba29e3cccc5b142ef612cafe', ...}
+- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[HistoricalLocations]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_5846c60985b1...160b0d65c681daf4ee98b4504f0f9cffb0710aa70e85543ce0bc5c2d', ...}
+- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Datastreams]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_591f7331985a...a4d3e0f357aa846a7d14ff83409b6b0f83cf6a298ed261c2299ab70e', ...}
+- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Sensors]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_d43e67172de4...a1f09d3a620913a3bf115a15af3e328c1957a1f5fd121861d6843639', ...}
+- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[ObservedProperties]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_274f723199a3...fcbcf6c4e19b6e983dd030ab81943d1eeb1c5cd18368c45664fbd320', ...}
+- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Observations]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_928558d0cc1f...73de577f831cacdb02736676a5ad7e263727c9762300d22807cd6a38', ...}
+- `tests.test_native_completion::test_actual_sta_all_entity_sets_and_exact_odata_downpush[FeaturesOfInterest]` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_f6a10985100e...7f41ba394f355e205c86c4401327cce270be3b1b2cb85edb3fa4194b', ...}
+- `tests.test_native_completion::test_actual_services_filter_and_unknown_service_rejection` — FAIL — AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_648cbd3615c3...e9d63de02d50d5ab1e65602a46113192cdc6614000f508bac9133642', ...}
 
 ## 五类验收
 
@@ -154,10 +159,10 @@
 
 ## 变更清单
 
-- 基线提交：`c6d41ba`
-- 新增（16）：docs/ROLLOUT-DELIVERY-20261114.md, docs/superpowers/plans/2026-11-14-rollout.md, evidence/baseline-full-suite.log, evidence/baseline-full-suite.xml, evidence/golden-chain-report.json, evidence/golden-chain-report.md, evidence/regression-full-suite.log, evidence/regression-full-suite.xml, evidence/report-run.log, tests/test_rollout_commit_preview.py, tests/test_rollout_discovery.py, tests/test_rollout_inventory.py, tests/test_rollout_native_predicates.py, tests/test_rollout_planner.py, tests/test_rollout_predicates.py, tests/test_rollout_projection.py
-- 修改（11）：definitio/agent.py, definitio/commit.py, definitio/completion.py, definitio/discovery.py, definitio/planner.py, definitio/preview.py, definitio/runtime.py, definitio/semantics.py, definitio/server.py, definitio/verifier.py, scripts/golden_chain_report.py
-- 未跟踪（1）：evidence/report-reuse.log
+- 基线提交：`4040567`
+- 新增（0）：
+- 修改（0）：
+- 未跟踪（48）：definitio/handbook.py, definitio/protocol.py, deploy/backends/README.md, deploy/backends/backends.example.json, deploy/backends/docker-compose.template.yml, docs/CLEAN-INSTALL.md, docs/CONTRACT-ADDENDUM-v0.5.md, docs/HANDBOOK.md, docs/OBJECT-HEADER-v0.1.md, docs/PERF-v05.md, evidence-clean/clean-install-full-suite.log, evidence-clean/clean-install-full-suite.xml, evidence-clean/golden-chain-report.json, evidence-clean/golden-chain-report.md, evidence-clean/regression-full-suite.log, evidence-clean/regression-full-suite.xml, evidence-clean/report-run.log, evidence/baseline-v05-full-suite.log, evidence/baseline-v05-full-suite.xml, evidence/clean-install-pip.log, evidence/clean-install-selftest.json, evidence/consistency-selfcheck.json, evidence/handbook.json, evidence/perf-baseline-v05.json, evidence/report-run-v05-final.log, evidence/report-run-v05.log, release-staging-v05/MANIFEST.json, release-staging-v05/consistency-suite-v0.1/README.md, release-staging-v05/consistency-suite-v0.1/selfcheck_runner.py, release-staging-v05/consistency-suite-v0.1/test_v05_handbook.py, release-staging-v05/consistency-suite-v0.1/test_v05_object_header.py, release-staging-v05/consistency-suite-v0.1/test_v05_protocol.py, release-staging-v05/consistency-suite-v0.1/test_v05_selfcheck.py, release-staging-v05/contract/CONTRACT-ADDENDUM-v0.5.md, release-staging-v05/contract/OBJECT-HEADER-v0.1.md, release-staging-v05/evidence/clean-install-selftest.json, release-staging-v05/evidence/consistency-selfcheck.json, release-staging-v05/handbook/HANDBOOK.md, release-staging-v05/install/CLEAN-INSTALL.md, scripts/build_release_staging.py
 
 ## 已知限制
 
@@ -182,7 +187,7 @@
 | AGENT.md | 8086 | `6b8864af312fc1027f8496cdba901bcd7b293b8732407b9892d252b7bbedccb2` |
 | README.md | 3299 | `6946640fabe7f085f850c1b770bec05293c6341c99571812c802e830f4264ea4` |
 | definitio/__init__.py | 88 | `38a30dbf11f3915341f759ad68bd9ee383a7f211c136b51c3994e954b805034b` |
-| definitio/agent.py | 57659 | `2a97e6bc7f77f5837a49ee7b614ae8cc6d75af321de5e3b836fd3ca7b84a5332` |
+| definitio/agent.py | 58525 | `fe4dd6c3a6746e35434659d3986a5daa839aec9f8219247f9ff300a79776dc75` |
 | definitio/authorization.py | 5478 | `383d872b42e22b1eb7c2a325fd6c88d358793c5bb10dfb299a67cbcf1d8ac361` |
 | definitio/catalog.json | 4090 | `e93d19ca12b88eb3173f93772fc26f775c379aa03f6c3eb1f66794d2ecb8a2da` |
 | definitio/commit.py | 9913 | `94ba02baf08f74569b2034be82ecdedaf00405e838c02b598a0fb9bb96ea3234` |
@@ -193,6 +198,7 @@
 | definitio/gdal_dem.py | 3264 | `146861799ac237128e636c955ba1de6d4c56f9974670d37f6acaaf3b0f55ba0c` |
 | definitio/golden.py | 5267 | `ec73b456695435e780ce64d00f6db70cfcb7315906c67d81e3204e6ec72ad0d1` |
 | definitio/guidance.py | 16537 | `b6760609dff4e3a41d13d423d0a911892f6f63dc57bc693a44ed2ba227f2fbee` |
+| definitio/handbook.py | 6442 | `469b02cd73eccd7d3ac58ae5f44c8244d6f3a36e4d68b3e78fa8d02bd3440dd9` |
 | definitio/lifecycle.py | 4423 | `56c61579169083dd28bbe41e9c2da92289817b4d90f92c7c5b18d52299b8afde` |
 | definitio/mcp_server.py | 9445 | `6c618966469cdfd6a767c8a8016bf29ac17c20b3a6f9ef99178b14942c503fe9` |
 | definitio/model.py | 9434 | `debb38b3dc1f07b05cb878b282b224fb01c038efbf3b8b7257f39132a7c085d2` |
@@ -201,11 +207,12 @@
 | definitio/pointcloud.py | 14289 | `2a833cc1166006bb7e6a8768ed105893e07f9ea7a258b7ad365d7abaabc0eca5` |
 | definitio/preview.py | 9036 | `46b94c15169fab51a0c7a27d490ec260108de829ce3b1b9d7a4bc6ab7910f018` |
 | definitio/processing.py | 3101 | `1b3775f90f82c284b3a9c18cddf0b6910197db85de77e0d81a74a7cca3b7247e` |
+| definitio/protocol.py | 7138 | `e49483048c773dd8d2b4688c3eb6f79d1043acb6e0a1b42f7b84078f545d412b` |
 | definitio/raster.py | 13044 | `c8a755c67288ed139f1d5fabf6312f77061912aa85969d676c7853235fd80985` |
 | definitio/resume.py | 3308 | `f082e0d219f070af04c6f6f9d8245ee27206e5de85124b74ea72f84d7d26a09c` |
-| definitio/runtime.py | 40600 | `05f1776a84849907334f2bd6073b203a4fb56a3b03dd2a8753ae1299aec15c04` |
+| definitio/runtime.py | 41324 | `b5a66920a2489fcf40bbcd2489bcc158dc82a2c24ee9ef0eef01ae8b56c44915` |
 | definitio/schemas.py | 12751 | `9dc60780d1fd856790984cd078b3a8fc236f2c7fc94970ecd6c54fd4c4ddf5aa` |
-| definitio/semantics.py | 8576 | `523a1aef9a7ca939af3f2974cad4dcf001bac644debd05cd95a2e8c27ee62c9e` |
+| definitio/semantics.py | 10717 | `925b1bf4bba6298551930791429350e4327ddb4940e76d1f3770e673bee507fd` |
 | definitio/server.py | 12332 | `ff96a1d6a0546abde9ef137dce6be043c496b16f846f93269adf7703eb7e684e` |
 | definitio/store.py | 15088 | `437acb37f8ca23c8f8af88185f0ce96e2d7b1fbbb6b338a6bb7f9e119e222345` |
 | definitio/surface.py | 10889 | `5d1a59f78b623997d496efb0e94ae37be479e4ddb0985de293dee0e7b7b28225` |
@@ -213,40 +220,82 @@
 | definitio/vector_extra.py | 8383 | `8490ea6fb2e285cf637163201448fc9ee7b8c95fd41ca17b371a68452da66229` |
 | definitio/verification.py | 950 | `2d88a72f251a2f516cd2519a0a1c550be2f091bc79f73bb128254fae539e59e9` |
 | definitio/verifier.py | 79255 | `f5961e896995205f649d88673b95f7dd4b1975c10e44983cd0d15f97d49c69ff` |
+| deploy/backends/README.md | 2415 | `80e770eb5d3db2e79a4010ea342e1b40f73885eff6e79c9f38346be861b4c0f2` |
+| deploy/backends/backends.example.json | 595 | `d5ecd86c377d62e6309c3a9eb17c9c4fa12dc3f9b3188f160bb6beb7180fb3a2` |
+| deploy/backends/docker-compose.template.yml | 1103 | `90ed4ffe78226302640d039f802ae831b0596745b48be152e97012956020aca7` |
+| docs/CLEAN-INSTALL.md | 5406 | `dddfdc0e435bc14656b7848761ad6837a325834f1c1a40f0a213add33603634a` |
+| docs/CONTRACT-ADDENDUM-v0.5.md | 7093 | `e076b9fe72f73bfad461c713fad3b4c6ccf669f084fdbacfdd1baa7166852180` |
 | docs/GOLDEN-CHAIN-DELIVERY-20261113.md | 25441 | `740d2b5db39ca035cd3b73c0175b94696c196a828e996b92de31611fcb1efb8a` |
+| docs/HANDBOOK.md | 12820 | `ece9aac3ed1bfadd4b39d091f489ebea507e01e4c08924714c3eb39f17de5cfb` |
+| docs/OBJECT-HEADER-v0.1.md | 4345 | `4d136775ea30b6a822fd29c2324f19ee58f6a01ba0b2cca4f6f3726db38bf48b` |
+| docs/PERF-v05.md | 3249 | `fc551a149a237199d2b482e10cb6e7729a84dd6bf51580777bd1ff1bc435984c` |
 | docs/ROLLOUT-DELIVERY-20261114.md | 20540 | `d40ae9a0a565c24a77e8be5fc2bb5a15829798b9619cce91d0584dcb01d1e0ae` |
 | docs/superpowers/plans/2026-11-13-golden-chain.md | 112583 | `667c7405768fb2dfe26a908245fd229a9854358fd1aa57486399ed3a7410540b` |
-| docs/superpowers/plans/2026-11-14-rollout.md | 40908 | `2e4b4391af51f5184283ab3e73dc7d10124f3c869a3ed07f9fc66b24a1fc3992` |
+| docs/superpowers/plans/2026-11-14-rollout.md | 41279 | `62b96bf5f62c4989151a2afdd2216ceddd178c1ae67062893a20518728413fc1` |
+| evidence-clean/clean-install-full-suite.log | 37054 | `94a96803c0b34bb895da95388b7e96b27f705bf1f384c54c2e18270a33a084a2` |
+| evidence-clean/clean-install-full-suite.xml | 76033 | `eff0e9e089310665f9f856eb695c7d869057bd73aadc441b3c08f713bb8badba` |
+| evidence-clean/golden-chain-report.json | 296412 | `5dfaf05df707e9aa4af92a1e043cd729d43cf4048f0113839ab9ee80b0a23b64` |
+| evidence-clean/golden-chain-report.md | 149300 | `3e2bb414d5675fff9feb02929ec51ae27fcc85ce7de8358a3e56640cee19df81` |
+| evidence-clean/regression-full-suite.log | 2268133 | `7cb39fdd61166059514ba60dadebd1b9e0913373f307044b4a4cf2e1a5a16b89` |
+| evidence-clean/regression-full-suite.xml | 2302522 | `16b10b602f7a7af7f943347ddd33992dc136771d9e20461e4197ae1fa8cab5a0` |
+| evidence-clean/report-run.log | 4169 | `6f8e13c6233f721f179aedf7eb469b0ad825ede1da6e4f86051b984f12653872` |
 | evidence/a3-a6-20261113/g0/frozen.json | 9430 | `21fac5a553897ce72d7ea8a6494c1c2d335e91e75c1bc7d11f662678a960746a` |
 | evidence/a3-a6-20261113/g0/predictions.json | 938 | `f77ab76fd4cc0a6e5571cb3f468dd5cff5677047aa4eb88206e6b2f7025c0f94` |
 | evidence/a3-a6-20261113/g0/protocol.json | 3076 | `525bd5413647bc3fc9574b77344e0c5b8aa0627a540ad7a9f339695486f01efc` |
 | evidence/a3-a6-20261113/g0/tasks.json | 42594 | `5aedd8cc1bcb5492b4a958c28463440019feb41698cf33cbcf8410770855bb9b` |
 | evidence/baseline-full-suite.log | 17012 | `6f4888da2d312d1e561c5afb8624eaeaa1d69fe21087e04aaa85a1daee666eae` |
 | evidence/baseline-full-suite.xml | 51065 | `c2a2c8bab0009f2aa13c5c0ae30c418eb27f0827c843e118b340ca92e05f8cad` |
-| evidence/golden-chain-report.json | 201308 | `3173261783092da9c9f7637482116c9a52f5e1d1bbe0ae919ef37658c266166c` |
-| evidence/golden-chain-report.md | 38272 | `982e14f2ec6e765fd2b0dec3523448d5c961f53dcd0179ad9c16401ef65ff696` |
-| evidence/regression-full-suite.log | 17106 | `697a5ca3f51c8edcecfa81eb01c23ba61bf5a76e7c538f93c816d7571dbded4e` |
-| evidence/regression-full-suite.xml | 61128 | `5dc1d72128f49165ffc0b642612c05f1e35610dae5935030807cd37f1cbe7fe7` |
-| evidence/report-reuse.log | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| evidence/baseline-v05-full-suite.log | 17101 | `1f10ac6b778bdf75983362d5074f3ce667d4e50d45d268d19e806b0588e07fd0` |
+| evidence/baseline-v05-full-suite.xml | 61123 | `7043ed03dc978e0d609a2961db6bd9bfcca85fe9f1ea840cbdcaef60cb3ce237` |
+| evidence/clean-install-pip.log | 18000 | `9a2376068cc2546daa6194e6e48fbb435f13cdfa7413b5bcf8058bce9a26cdbb` |
+| evidence/clean-install-selftest.json | 429 | `3c8049bb684b4c915d942edfa1d65881d8e9f42d23d88fe4a88a1eae33a74126` |
+| evidence/consistency-selfcheck.json | 4071 | `19bb0ef663c4316f9883ab49334f020081d6c58ef8d6f61180a8907c8c00b4b8` |
+| evidence/golden-chain-report.json | 202602 | `c50b3f4364f9ff7db39cc83bbef8b40bd0473adf07d73b112a3b25cc97e4b195` |
+| evidence/golden-chain-report.md | 40370 | `4e7b793e1da488fe7d93cf72be63a295bf1514e5a1dbddaf70a56f208535c24d` |
+| evidence/handbook.json | 28554 | `ad21bb54af00cab47f0fe78698dab9e632339b913aae05a6e38c1a924e387f79` |
+| evidence/perf-baseline-v05.json | 4666 | `3d4facd0e209bb0dc2c6c953bf79ad35a7dca551c4cc67e8dea556d7b3c46e15` |
+| evidence/regression-full-suite.log | 36960 | `8478f2ad5964ec6fc05a9b0440790c0ad5e2a941f9f37af0bc47e99e96156b97` |
+| evidence/regression-full-suite.xml | 77471 | `a974cbdff1825694a1606e03ff2aed004d1f50745b0f3be38aa5713560ad2acb` |
+| evidence/report-reuse.log | 4169 | `9966fad5d13015af7b76743f65b3f8983567cd742c5bd4cd5bc32df5b4ee19c4` |
+| evidence/report-run-v05-final.log | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| evidence/report-run-v05.log | 4169 | `8356626d939c9614198b29739055373dbc92ca8dbf8ed23f01ed46df01060a90` |
 | evidence/report-run.log | 4169 | `1e52f155c2fbdaebff98929e253cefb96297a1974dcdf8eec2c1cf0257187b44` |
 | examples/analytic-dissolve.geojson | 3041 | `2450e119e9959b8338ba31818cbe099048be2f8a1d53da678573e0629ebc6268` |
 | examples/pdal-grid.las | 3347 | `c674843b5ffa87c1b6a5331dd951f7258303ac3172ba1ef1fbd3b0ed885d017b` |
+| release-staging-v05/MANIFEST.json | 2996 | `1326189408b997809cf0b6b4b0f074db29020ff678a88f39daf43c93dbc089b0` |
+| release-staging-v05/consistency-suite-v0.1/README.md | 927 | `a7a1fe2353b1998bed22d9538490f654c6f01b3fc6e21f9dccf1df32fb1eeaad` |
+| release-staging-v05/consistency-suite-v0.1/selfcheck_runner.py | 8026 | `5ebd9c6f79ff43efd70207a6f22b9ceae92ba93a961982869039ccd6dcce9568` |
+| release-staging-v05/consistency-suite-v0.1/test_v05_handbook.py | 3138 | `df42a21e62973232100229291ccb107ac68a9ae2a95837454612b6120f30c958` |
+| release-staging-v05/consistency-suite-v0.1/test_v05_object_header.py | 6170 | `bcd56f1accafbdf0ff0d6bbb2d5d0d44621821b42416ed4f4bb0deda41a97bc5` |
+| release-staging-v05/consistency-suite-v0.1/test_v05_protocol.py | 9515 | `9ad2e0590d9eb0223277c88bfffc243aa269c0ac9ea27337de17d7c4bfd10268` |
+| release-staging-v05/consistency-suite-v0.1/test_v05_selfcheck.py | 4177 | `d2b2613d5612dcfa3e0442fa010a464a51f9c451ab091ef150d5cf0288fb5c90` |
+| release-staging-v05/contract/CONTRACT-ADDENDUM-v0.5.md | 7093 | `e076b9fe72f73bfad461c713fad3b4c6ccf669f084fdbacfdd1baa7166852180` |
+| release-staging-v05/contract/OBJECT-HEADER-v0.1.md | 4345 | `4d136775ea30b6a822fd29c2324f19ee58f6a01ba0b2cca4f6f3726db38bf48b` |
+| release-staging-v05/evidence/clean-install-selftest.json | 429 | `3c8049bb684b4c915d942edfa1d65881d8e9f42d23d88fe4a88a1eae33a74126` |
+| release-staging-v05/evidence/consistency-selfcheck.json | 4071 | `19bb0ef663c4316f9883ab49334f020081d6c58ef8d6f61180a8907c8c00b4b8` |
+| release-staging-v05/handbook/HANDBOOK.md | 12820 | `ece9aac3ed1bfadd4b39d091f489ebea507e01e4c08924714c3eb39f17de5cfb` |
+| release-staging-v05/install/CLEAN-INSTALL.md | 5406 | `dddfdc0e435bc14656b7848761ad6837a325834f1c1a40f0a213add33603634a` |
 | requirements-core.txt | 136 | `6411b9488f352fa56580cebef79975c518bd175e29fbcfe8d7085d798b882a26` |
-| requirements.txt | 39 | `31c823f6bed872aff4e3d8980d8bfd95d5308d5ec73f9540f19e013620e912d4` |
+| requirements.txt | 57 | `576a909a024621b5652797dc22efc82d7ff1bb7d5b6c8e7bbadb620cfbf71fbc` |
 | run_engine.py | 877 | `2423906e8a89155e6c129c3a974004abaa0aa3921318e05a97244647a000a874` |
 | run_mcp.py | 252 | `bfbb849bef97803588fafeaedd887ca5af1e9848e7c14d4e7320b60928607b14` |
 | scripts/agent_mcp_smoke.py | 9185 | `4c7d79756fdb139dcc5aa6f608a1e510d6cd7d3e88bb74821469754efd1eb4bc` |
 | scripts/audit_g1.py | 6790 | `6d322fb357d7839117e64495c75a9d38d5105c42303b003bb7742d3d4f3cc628` |
 | scripts/bootstrap_local_backends.py | 5630 | `5b4b3e8909f695c0f754a2e5319eab1fff5f22d36f9b47a34e4c1e2b067e900f` |
+| scripts/build_release_staging.py | 5029 | `fdc41042945ab468a4b39021ba76fa32c0d8278b7e19797cbc59e8f471200df6` |
+| scripts/clean_install_selftest.py | 3873 | `1f3d0ea6b397fdab6c021420e47a2973b975b0e1de1303a3010ee1d30bc8ab27` |
 | scripts/completion_matrix.py | 11851 | `28e084ac4ad36e0c2f037fd47a0181a4a9cea0adabf4ec49338ad4b3fc818dc1` |
 | scripts/completion_reference.py | 14217 | `294a77af04bf2a982382b6736983e6aeeba5f149d99cac4bf7412c7de72d7c52` |
+| scripts/consistency_selfcheck.py | 8026 | `5ebd9c6f79ff43efd70207a6f22b9ceae92ba93a961982869039ccd6dcce9568` |
 | scripts/environment_doctor.py | 969 | `f417ae2477f64e0e79ee7a27d92e4834ba3c697e3fdbd3c29ecb2ea5562f67dd` |
+| scripts/generate_handbook.py | 2000 | `60605da3a6a618e5dc293f18e2f0009f6ab84264da43322dab87c5ed2d01b225` |
 | scripts/gis_equivalence_matrix.py | 10024 | `921dcb2c090c67278c37e534b22a0e021cc018b7c0c7de5a5f7669a6f4a0d846` |
-| scripts/golden_chain_report.py | 21462 | `e580299d7fd947232e169e4c6ae8d5e68f32194dc4cdfd4617cc3e5dcc6a0b06` |
+| scripts/golden_chain_report.py | 22238 | `3c62b46f3612bc5a63e4c62fbdddee6e11c79e4217f416ff84cd6be8e44330db` |
 | scripts/measure_cold_start.py | 3779 | `fe192ab809bd077e804dbab0aa10351c4099bc7b71577c510d4699c7bd344feb` |
 | scripts/model_evaluation.py | 28459 | `c3b652cee76c9dfc0f4be106670e7f9d32f02b44ceb5d8184a89d7adf2af43d7` |
 | scripts/native_gis_worker.py | 10656 | `8b5b2b201066048103dff06b750c260a095569bf54a832926f355d27ac316fef` |
 | scripts/package_release.py | 5049 | `1cafe1bf34483828d69d9e55db2723a2826f4047ff5ff26cfd53d3b7c22a9781` |
+| scripts/perf_baseline.py | 8064 | `90fd793b875852eff87d79cc20f5fe12300f970f83dfe439b4051d07ccf2e222` |
 | scripts/prepare_a3_a6.py | 16003 | `7bbe401547bd1d18633237ffa1b43ae682eb6add2dc23a66c526f5656bda114e` |
 | scripts/prepare_local_upgrade.py | 3425 | `fad1a960056289680ae67eef048875062cd5e65a0a3a5acec1cd76e12cf49b1b` |
 | scripts/processing_matrix.py | 2512 | `12df54bc01c6b87cfd1f61e689399643ffa0a0ed41e38fd0674e44a05ee625d3` |
@@ -284,6 +333,10 @@
 | tests/test_runtime.py | 21238 | `0255751b17197bd7a61e31115f8ad9ede974f1a6b557a53ddeb4f49d6469103e` |
 | tests/test_surface.py | 8399 | `4a9cf82c7359b3c7e0def8944108f30c1b21e698b99d5a1990896fbc71e50706` |
 | tests/test_usability.py | 10102 | `62ae55c9ce3422abf0d0f7508ba9903531938b860096177a53a951916fc9294f` |
+| tests/test_v05_handbook.py | 3138 | `df42a21e62973232100229291ccb107ac68a9ae2a95837454612b6120f30c958` |
+| tests/test_v05_object_header.py | 6170 | `bcd56f1accafbdf0ff0d6bbb2d5d0d44621821b42416ed4f4bb0deda41a97bc5` |
+| tests/test_v05_protocol.py | 9515 | `9ad2e0590d9eb0223277c88bfffc243aa269c0ac9ea27337de17d7c4bfd10268` |
+| tests/test_v05_selfcheck.py | 4177 | `d2b2613d5612dcfa3e0442fa010a464a51f9c451ab091ef150d5cf0288fb5c90` |
 | tests/test_workstation.py | 6968 | `17fd30d86ef7e4d3f9fe476dba00a667d050a1eec371695e6249f6f28813bc8d` |
 | web/app.js | 33827 | `56df0f48c48d6ef4de312fd122f6c38ce8f239f6918b7655dfdddafd866f9479` |
 | web/index.html | 8192 | `0d0d741daa89e5d477e58d3beaaf29e2c09945a51b64cb42fd7e5d0be00b20a6` |

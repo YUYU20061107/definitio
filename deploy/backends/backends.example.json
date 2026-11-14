@@ -1,0 +1,23 @@
+{
+  "_comment": "模板：复制到 data/backends.json 后填入真实口令。data/ 不入库。键名与 definitio/completion.py 一致。",
+  "postgis": {
+    "host": "127.0.0.1",
+    "port": 5432,
+    "dbname": "gis",
+    "user": "gis",
+    "password": "<set-me>"
+  },
+  "geoserver": {
+    "url": "http://127.0.0.1:8080/geoserver",
+    "user": "admin",
+    "password": "<set-me>",
+    "sandbox": true,
+    "allow_publish": true,
+    "workspace_prefix": "definitio_"
+  },
+  "sensorthings": {
+    "url": "http://127.0.0.1:8081/istsos",
+    "user": "<set-me>",
+    "password": "<set-me>"
+  }
+}
