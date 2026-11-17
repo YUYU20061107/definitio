@@ -6,10 +6,69 @@ import argparse
 from collections import Counter
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import sys
 import zipfile
+
+# G1 guard: the 59-file baseline manifest travels WITH the package. No external
+# drive path is consulted, and a missing evidence file is reported explicitly.
+BUNDLED_BASELINE = Path(__file__).resolve().parents[1] / "evidence" / "g1-baseline-59.json"
+REQUIRED_HANDOFF = ("MANIFEST-20261111.md", "Definitio-G1-handoff-20261111.zip",
+                    "verbs.json", "audit-results.json",
+                    "gis-agent-conformance-suite-v0.1-full.md",
+                    "gis-agent-semantic-contract-v0.1-full.md")
+
+
+def resolve_workbench_root(explicit=None):
+    """Explicit workbench root parameter wins; env var second; the fallback is
+    declared, not silent. Callers always see which rule produced the path."""
+    if explicit is not None:
+        return Path(explicit).resolve(), "explicit_parameter"
+    env = os.environ.get("DEFINITIO_WORKBENCH_ROOT")
+    if env:
+        return Path(env).resolve(), "environment_DEFINITIO_WORKBENCH_ROOT"
+    return Path(__file__).resolve().parents[2], "default_parents2_declared"
+
+
+def check_baseline(root, baseline_path=None):
+    """Recount the bundled 59-file baseline against an EXPLICIT workbench root.
+
+    Status is PASS / CHANGED / MISSING. Missing evidence is enumerated by name;
+    it is never skipped, never downgraded to a pass, and never inferred from
+    another drive.
+    """
+    root = Path(root).resolve()
+    baseline = Path(baseline_path) if baseline_path is not None else BUNDLED_BASELINE
+    report = {"root": str(root), "baseline": str(baseline),
+              "baseline_present": baseline.exists(), "status": "MISSING",
+              "expected_count": 0, "checked": 0, "missing_files": [],
+              "changed_files": [], "handoff_missing": []}
+    if not baseline.exists():
+        report["reason"] = "bundled_baseline_manifest_missing"
+        report["handoff_missing"] = list(REQUIRED_HANDOFF)
+        return report
+    expected = json.loads(baseline.read_text(encoding="utf-8"))
+    report["expected_count"] = len(expected)
+    handoff = root / "02-g1-gate" / "handoff-20261111"
+    report["handoff_missing"] = [n for n in REQUIRED_HANDOFF if not (handoff / n).exists()]
+    for rel, want in expected.items():
+        path = root / rel
+        if not path.exists():
+            report["missing_files"].append(rel)
+        elif hashlib.sha256(path.read_bytes()).hexdigest() != want:
+            report["changed_files"].append(rel)
+        else:
+            report["checked"] += 1
+    if report["changed_files"]:
+        report["status"] = "CHANGED"
+    elif (report["missing_files"] or report["handoff_missing"]
+          or report["checked"] != 59 or report["expected_count"] != 59):
+        report["status"] = "MISSING"
+    else:
+        report["status"] = "PASS"
+    return report
 
 
 def leaves(node):
@@ -51,7 +110,20 @@ def recount(registry, audit):
             "bridge_tool_status":dict(bts),"pending_leaf_total":sum(pending.values()),"pending_groups":len(pending),"errors":errors}
 
 
-def review(root):
+def review(root, baseline=None):
+    root=Path(root).resolve()
+    evidence=check_baseline(root, baseline)
+    if evidence["status"] != "PASS":
+        # Explicit missing/changed evidence report. NOT a skip, NOT a PASS.
+        return {"scope":"development_read_only_review_not_G1_acceptance",
+                "status":evidence["status"],"root":str(root),"evidence":evidence,
+                "missing_evidence":{"baseline":evidence["baseline"],
+                                    "files":evidence["missing_files"],
+                                    "changed":evidence["changed_files"],
+                                    "handoff":evidence["handoff_missing"]},
+                "integrity":{"status":evidence["status"]},
+                "registry":{"status":"NOT_RUN","errors":["baseline evidence incomplete; no registry recount issued"]},
+                "G1_acceptance":"NOT_ISSUED","L1_L3_certification":"NOT_ISSUED"}
     handoff=root/'02-g1-gate/handoff-20261111'
     manifest=(handoff/'MANIFEST-20261111.md').read_text(encoding='utf-8')
     pins=re.findall(r'^\| `([^`]+)` \| ([\d,]+) \| `([a-f0-9]{20})` \|',manifest,re.M)
@@ -81,27 +153,39 @@ def review(root):
     # Keep machine predicates separate from manually grounded reading findings.
     findings[0]["status"]='FAIL' if findings[0]["evidence"] else 'REVIEW'
     findings[2]["status"]='FAIL' if '有限浮点值按解析后的数值精确分组' in contract and '本稿按 A 落稿' in contract else 'REVIEW'
-    return {"scope":"development_read_only_review_not_G1_acceptance","integrity":{"status":"PASS" if pins and all(i['passed'] for i in integrity) and archive_ok else 'FAIL',"files":integrity,"zip_crc_and_payload":archive_ok,"zip_sha256":hashlib.sha256(archive.read_bytes()).hexdigest()},
+    return {"scope":"development_read_only_review_not_G1_acceptance","root":str(root),
+            "evidence":evidence,"integrity":{"status":"PASS" if pins and all(i['passed'] for i in integrity) and archive_ok else 'FAIL',"files":integrity,"zip_crc_and_payload":archive_ok,"zip_sha256":hashlib.sha256(archive.read_bytes()).hexdigest()},
             "registry":registry,"case_inventory":{"count":len(cases),"statuses":dict(Counter(c['declared_status'] for c in cases)),"cases":cases},
             "findings":findings,"G1_acceptance":"NOT_ISSUED","L1_L3_certification":"NOT_ISSUED"}
 
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--root',type=Path,default=Path(__file__).resolve().parents[2])
+    parser.add_argument('--root',type=Path,help='显式工作台根；缺省读 DEFINITIO_WORKBENCH_ROOT，再缺省才用声明的 parents[2]')
+    parser.add_argument('--baseline',type=Path,default=BUNDLED_BASELINE,help='随包完整 59 文件基线清单')
+    parser.add_argument('--baseline-only',action='store_true',help='只做基线证据核对并显式报缺失')
     parser.add_argument('--registry',type=Path)
     parser.add_argument('--against',type=Path)
     args=parser.parse_args()
+    root,root_source=resolve_workbench_root(args.root)
     try:
-        if args.registry:
+        if args.baseline_only:
+            result=check_baseline(root,args.baseline)
+            failed=result['status']!='PASS'
+        elif args.registry:
             if not args.against: parser.error('--registry requires --against')
             result=recount(json.loads(args.registry.read_text(encoding='utf-8')),json.loads(args.against.read_text(encoding='utf-8')))
             failed=result['status']=='FAIL'
         else:
-            result=review(args.root)
-            failed=result['integrity']['status']=='FAIL' or result['registry']['status']=='FAIL' or any(x['status']=='FAIL' for x in result['findings'])
+            result=review(root,args.baseline)
+            result={'workbench_root':str(root),'root_source':root_source,**result}
+            failed=(result.get('status') in ('MISSING','CHANGED')
+                    or result['integrity']['status']!='PASS'
+                    or result['registry']['status']=='FAIL'
+                    or any(x['status']=='FAIL' for x in result.get('findings',[])))
     except Exception as exc:
-        result={"status":"FAIL","errors":[str(exc)]};failed=True
+        result={"status":"FAIL","workbench_root":str(root),"root_source":root_source,
+                "errors":[str(exc)]};failed=True
     print(json.dumps(result,ensure_ascii=False,indent=2))
     return 1 if failed else 0
 

@@ -190,13 +190,26 @@ class Runtime:
             task = self.store.task(task_id)
             require(plan_digest == task["plan_digest"] == self.plan_digest(task), message="计划摘要不一致，请重新规划后确认")
             if task["task_state"] == "COMMITTED":
-                for ref in task["output_refs"]:
-                    self.store.verify_snapshot(self.store.dataset(ref))
+                # RT-05: an immutable historical receipt is not a live state.
+                live = commit.live_readback(self.store, task)
+                task["live_status"] = live
                 task["replay_count"] += 1
                 self.store.save_task(task)
+                require(live["state"] == "confirmed", "TARGET_STATE_UNKNOWN",
+                        "已提交任务的承诺产物实时读回未确认；禁止用历史回执填充实时状态，也不重新发布",
+                        problem_count=len(live["problems"]), problems=live["problems"])
                 return task
             require(task["task_state"] == "DECLARED", "TARGET_STATE_UNKNOWN", "该任务已经结束或被隔离；禁止盲目重放", task_state=task["task_state"])
             require(task["versions"]["source_digest"] == self.source_digest, "TARGET_STATE_UNKNOWN", "计划建立后执行源码已变化；须重新规划；已提交回执仍可读取")
+            # RT-04 second gate: direct Runtime callers bypass AgentService, so
+            # capability coverage is re-checked here, before any write is issued.
+            governance = task["governance_state"]
+            if governance.get("grant_capabilities") is not None:
+                from .authorization import Authorizations
+                Authorizations.check_effects(
+                    {"capabilities": governance["grant_capabilities"],
+                     "max_file_exports": governance.get("grant_max_file_exports", 0)},
+                    commit.side_effect_inventory(task))
             from .completion import precheck
             for step in task["steps"]:
                 precheck(self, step["verb"], step["parameters"])
@@ -227,9 +240,24 @@ class Runtime:
                     previous = output["id"]
             except Exception as exc:
                 fault = exc if isinstance(exc, GISFault) else GISFault("BACKEND_ERROR", "本地计算失败，当前步骤已回滚", reason=str(exc)[:500])
-                if step["verb"] == "gis_publish_layer" and fault.code == "TARGET_STATE_UNKNOWN":
+                # RT-06: once an external side-effect phase is open, ANY later
+                # failure (transport, JSON/Unicode decode, missing receipt field,
+                # postcondition verification, or process exit) is an unknown
+                # external state. It must be isolated, never reported as rolled back.
+                phase = self.store.external_phase(task["id"])
+                phase_open = phase is not None and not phase["resolved"]
+                if phase_open:
+                    original = fault.payload()
+                    if fault.code != "TARGET_STATE_UNKNOWN" or "外部副作用相位" not in fault.message:
+                        fault = GISFault("TARGET_STATE_UNKNOWN",
+                                         "外部副作用相位之后发生失败；外部服务状态未知，已隔离，不得声称已回滚",
+                                         cause=original, external_phase=phase, reason=str(exc)[:300])
                     task["execution_started"] = True
-                step["state"] = "ISOLATED" if fault.code == "TARGET_STATE_UNKNOWN" else "FAILED"
+                    step["execution_started"] = True
+                elif step["verb"] == "gis_publish_layer" and fault.code == "TARGET_STATE_UNKNOWN":
+                    task["execution_started"] = True
+                isolated = fault.code == "TARGET_STATE_UNKNOWN" or phase_open
+                step["state"] = "ISOLATED" if isolated else "FAILED"
                 step["error"] = fault.payload()
                 task["error"] = fault.payload()
                 for following in task["steps"][step["index"]:]:
@@ -383,6 +411,11 @@ class Runtime:
                 require(not occupied, "ALREADY_EXISTS", "目标在规划后已被占用；不会覆盖", target=target)
             if step["verb"] == "gis_delete_field":
                 self.consume_preflight(p, inputs[0], db)
+            if step["verb"] in commit.EXTERNAL_PUBLISH_VERBS:
+                # RT-06: durable phase marker on its own connection, committed
+                # BEFORE the first POST/PUT reaches the external service.
+                self.store.begin_external_phase(task["id"], step["id"])
+                task["execution_started"] = True
             if step["verb"] == "gis_list_algorithms":
                 proposal = {"result": self.capabilities()}
             elif step["verb"] == "gis_describe_algorithm":
@@ -523,6 +556,10 @@ class Runtime:
             if output:
                 task["output_refs"].append(output["id"])
             self.store.save_task(task, db)
+            # Only a fully verified step may close the external phase. A crash
+            # before this point leaves an open marker and recovery isolates it.
+            if step["verb"] in commit.EXTERNAL_PUBLISH_VERBS:
+                self.store.resolve_external_phase(task["id"], "published_and_readback_verified")
             return output
 
     def field_preflight(self, dataset, fields, target):

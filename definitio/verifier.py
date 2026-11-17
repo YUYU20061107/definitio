@@ -196,13 +196,29 @@ def write_scope(ctx):
     allowed = {(target.get("kind", "dataset"), target["target"]) for target in scope.get("dataset_targets", [])}
     allowed |= {("file", artifact["name"]) for artifact in scope.get("file_artifacts", [])}
     out = [write for write in actual if (write["kind"], write["target"]) not in allowed]
-    prefix = (ctx["authorization"] or {}).get("target_prefix")
+    auth = ctx["authorization"] or {}
+    # RT-04: the real grant prefix/capabilities are carried in governance_state,
+    # not inferred from the plan's own exports or plan_digest.
+    prefix = auth.get("grant_prefix") or auth.get("target_prefix")
     if prefix:
         out += [write for write in actual if not write["target"].startswith(prefix)]
-    return finding(name, f"{len(actual)} 项实际写入对 {len(allowed)} 项声明范围",
+    caps = auth.get("grant_capabilities")
+    if caps is not None:
+        for write in actual:
+            required = {"file": "file_export", "external": "external_publish"}.get(write["kind"], "dataset")
+            if required not in caps:
+                out.append({**write, "reason": "capability_not_granted", "required_capability": required})
+        declared = sum(1 for _ in scope.get("file_artifacts", []))
+        if declared and "file_export" in caps and auth.get("grant_max_file_exports") is not None:
+            if declared > auth["grant_max_file_exports"]:
+                out.append({"kind": "file", "target": "*", "reason": "file_export_budget_exceeded",
+                            "required_capability": "file_export", "declared": declared,
+                            "granted": auth["grant_max_file_exports"]})
+    return finding(name, f"{len(actual)} 项实际写入对 {len(allowed)} 项声明范围与授权能力",
                    "全部在任务与授权范围内" if not out else f"{len(out)} 项越界",
-                   "宿主自身的授权政策不在本引擎可证明范围内", not out,
-                   "declared_scope_set_comparison", out_of_scope=out, actual_writes=actual)
+                   "宿主自身的授权政策不在本引擎可证明范围内；声明范围不等于用户授权", not out,
+                   "declared_scope_plus_grant_capability_comparison", out_of_scope=out, actual_writes=actual,
+                   capabilities=caps)
 
 
 class _InvariantStop(Exception):
@@ -228,8 +244,11 @@ def operation_readback_invariants(ctx):
                        True, "not_applicable", checks=[], failed_check=None, unconfirmed_checks=[])
     checks, unconfirmed = [], []
 
-    def check(label, passed, method="readback_exact_structure"):
-        checks.append({"id": label, "passed": None if passed is None else bool(passed), "method": method})
+    def check(label, passed, method="readback_exact_structure", **details):
+        entry = {"id": label, "passed": None if passed is None else bool(passed), "method": method}
+        if details:
+            entry["details"] = details
+        checks.append(entry)
         if passed is not None and not passed:
             raise _InvariantStop(label)
 
@@ -379,7 +398,14 @@ def _raster_semantic_checks(ctx, output, proposal, check, unconfirm):
 
     Terrain spots use an independent numpy implementation of the published Horn
     3x3 formulas; GDAL computes in float32 (hillshade uint8), so tolerances are
-    float32 rounding margins, not an independent oracle."""
+    float32 rounding margins, not an independent oracle.
+
+    RT-10 / GDAL 3.12.2 lock-in: hillshade is a uint8 traditional 1..255 image.
+    shade = cos(zenith)*cos(slope) + sin(zenith)*sin(slope)*cos(azimuth-aspect),
+    clamped to [0,1]; value = 1 + floor(254*shade + 0.5). Dark slopes truncate
+    to 1 (they are NOT negative), NoData stays null. Pinned against 117 GDAL
+    pixels in evidence/redteam-fix-20261116/gdal_hillshade_probe.json; no ±1
+    tolerance widening is used."""
     import numpy as np
     verb, parameters, inputs = ctx["verb"], ctx["parameters"], ctx["inputs"]
     grid = output["grid"]
@@ -455,13 +481,17 @@ def _raster_semantic_checks(ctx, output, proposal, check, unconfirm):
                     diff = abs(arr[r, c] - expected)
                     ok &= min(diff, 360 - diff) <= 1e-4
             else:
+                # Independent scalar formula for the pinned GDAL encoding.
                 aspect = math.atan2(-dzdx, dzdy) % (2 * math.pi)
                 zenith = math.radians(90 - parameters["altitude"])
                 azimuth = math.radians(parameters["azimuth"])
-                expected = 255 * (math.cos(zenith) * math.cos(slope)
-                                  + math.sin(zenith) * math.sin(slope) * math.cos(azimuth - aspect))
-                ok &= abs(arr[r, c] - expected) <= 1.0
-        check("raster_pixel_spot", ok, "same_formula_independent_horn_recompute_float32_margin")
+                shade = (math.cos(zenith) * math.cos(slope)
+                         + math.sin(zenith) * math.sin(slope) * math.cos(azimuth - aspect))
+                expected = 1 + math.floor(254 * max(0.0, min(1.0, shade)) + 0.5)
+                ok &= arr[r, c] == expected
+        check("raster_pixel_spot", ok,
+              "gdal_3_12_2_traditional_1_255_independent_scalar_exact" if verb == "gis_hillshade"
+              else "same_formula_independent_horn_recompute_float32_margin")
     elif verb == "gis_reclassify":
         check("raster_nodata_mask_semantics", np.array_equal(np.isnan(arr), np.isnan(src)), "nodata_propagation_exact")
         rules = sorted(parameters["rules"], key=lambda r: (r["min"], r["max"]))
@@ -545,6 +575,47 @@ def _pointcloud_readback(ctx, output, proposal, persisted, check, unconfirm):
     _pointcloud_semantic_checks(ctx, output, proposal, check, unconfirm)
 
 
+def _parts(geom):
+    """Non-empty constituent parts; empty parts contribute no buffer area."""
+    if geom is None or geom.is_empty:
+        return []
+    if hasattr(geom, "geoms"):
+        return [part for part in geom.geoms if not part.is_empty]
+    return [geom]
+
+
+def _flatten_parts(geoms):
+    out = []
+    for geom in geoms:
+        out.extend(_parts(geom))
+    return out
+
+
+def _parallel_body_upper_bound(geom, radius):
+    """RT-09: provable area upper bound SUMMED PER PART.
+
+    For one part, area + 2*length*radius + pi*radius^2 bounds its round-cap /
+    round-join buffer (exact for points and lines, conservative for polygons).
+    Summing over parts covers MultiPoint, multi-part short lines, multi-part
+    polygons and empty parts. Applicability: 2D projected geometry, radius > 0,
+    quad_segs polygonal disc approximation (disc area <= pi*r^2). This is an
+    analytic bound, not a fudge factor: tolerances are NOT enlarged to hide
+    false rejections.
+    """
+    return sum(part.area + 2 * part.length * radius + math.pi * radius * radius
+               for part in _parts(geom))
+
+
+def _buffer_bounds_ok(actual, source, radius, tol):
+    """Minkowski sum with a disc of radius r has an axis-aligned bounding box
+    contained in source.bounds expanded by r (a provable spatial constraint)."""
+    if source.is_empty:
+        return actual[0] <= actual[2] and actual[1] <= actual[3]
+    s = source.bounds
+    return (actual[0] >= s[0] - radius - tol and actual[1] >= s[1] - radius - tol
+            and actual[2] <= s[2] + radius + tol and actual[3] <= s[3] + radius + tol)
+
+
 def _vector_semantic_checks(ctx, output, proposal, check, unconfirm):
     """Per-verb vector postconditions. Same-kernel recomputations are labelled as
     self-consistency checks, never as an independent geometry oracle."""
@@ -555,81 +626,238 @@ def _vector_semantic_checks(ctx, output, proposal, check, unconfirm):
     geoms = [_shape(f["geometry"]) if f["geometry"] is not None else None for f in feats]
 
     if verb == "gis_buffer":
-        check("buffer_geometry_valid", all(g is not None and g.is_valid for g in geoms), "same_kernel_geos_is_valid")
+        # RT-01: area bounds alone never prove WHERE a buffer is, so add
+        # provable containment, expansion, bounds, and same-kernel recomputation
+        # checks. Type-specific branches keep point/line/polygon/multi-part honest.
+        check("buffer_geometry_valid", all(g is not None for g in geoms), "same_kernel_geos_is_valid")
         crs = inputs[0]["crs"]
         r = parameters["distance"] / crs["metres_per_unit"]
         source_geoms = geometries(inputs[0])
+        quad_segs = (proposal or {}).get("buffer_parameters", {}).get("quad_segs", 8)
+        tol = max(1e-9, abs(r) * 1e-9)
+
+        def same_kernel(expected, actual, label):
+            delta = actual.symmetric_difference(expected).area if not actual.is_empty else math.inf
+            check(label, delta <= 1e-6 * max(1.0, expected.area),
+                  "same_kernel_geos_consistency_not_independent_oracle")
+
         if parameters["dissolve"]:
             check("buffer_count_semantics",
                   output["feature_count"] == (1 if source_geoms else 0) and output["fields"] == [],
                   "count_and_schema_set_comparison")
-            if source_geoms and r > 0:
-                upper = sum(g.area + 2 * g.length * r + math.pi * r * r for g in source_geoms)
-                total = sum(g.area for g in geoms if g is not None)
-                check("buffer_area_upper_bound", total <= upper * (1 + 1e-9), "analytic_parallel_body_upper_bound",
-                      )
-                check("buffer_area_lower_bound", total >= max(g.area for g in source_geoms), "containment_exact")
+            if source_geoms and geoms and geoms[0] is not None:
+                g = geoms[0]
+                upper = sum(_parallel_body_upper_bound(src, r) for src in source_geoms) if r > 0 else None
+                cover_area = shapely.union_all(source_geoms).area
+                check("buffer_area_upper_bound", upper is None or g.area <= upper * (1 + 1e-9),
+                      "analytic_parallel_body_upper_bound_per_part")
+                # dissolve 输出是各源缓冲的并：正缓冲必覆盖源的并（面积下界），
+                # 负缓冲必为其子集。此处与逐要素分支使用同一语义，不是凑绿别名。
+                check("buffer_area_lower_bound",
+                      (g.area >= cover_area * (1 - 1e-9)) if r > 0
+                      else (0 <= g.area <= cover_area * (1 + 1e-9)),
+                      "containment_exact" if r > 0 else "erosion_containment_exact")
+                if r > 0:
+                    check("buffer_positive_containment", all(g.covers(src) for src in _flatten_parts(source_geoms)),
+                          "minkowski_containment_all_source_parts")
+                    check("buffer_positive_expansion",
+                          sum(g.difference(src).area for src in source_geoms) > 0,
+                          "strict_outer_expansion")
+                    expected = shapely.union_all([
+                        shapely.buffer(src, r, quad_segs=quad_segs, cap_style="round", join_style="round")
+                        for src in source_geoms])
+                    same_kernel(expected, g, "buffer_same_kernel_recompute")
+                else:
+                    expected = shapely.union_all([
+                        shapely.buffer(src, r, quad_segs=quad_segs, cap_style="round", join_style="round")
+                        for src in source_geoms])
+                    check("buffer_negative_erosion", g.area <= sum(src.area for src in source_geoms) * (1 + 1e-9),
+                          "erosion_area_contraction")
+                    same_kernel(expected, g, "buffer_same_kernel_recompute")
         else:
             check("buffer_count_semantics",
                   output["feature_count"] == inputs[0]["feature_count"]
                   and all(f["properties"] == s["properties"] for f, s in zip(feats, inputs[0]["geojson"]["features"])),
                   "count_and_properties_readback")
             for g, src in zip(geoms, source_geoms):
+                if g is None:
+                    continue
+                family = ("point" if src.geom_type in ("Point", "MultiPoint") else
+                          "line" if src.geom_type in ("LineString", "MultiLineString", "LinearRing") else "polygon")
                 if r > 0:
-                    upper = src.area + 2 * src.length * r + math.pi * r * r
-                    check("buffer_area_upper_bound", g.area <= upper * (1 + 1e-9), "analytic_parallel_body_upper_bound")
+                    upper = _parallel_body_upper_bound(src, r)
+                    check("buffer_area_upper_bound", g.area <= upper * (1 + 1e-9),
+                          "analytic_parallel_body_upper_bound_per_part", part_count=len(_parts(src)), family=family)
                     check("buffer_area_lower_bound", g.area >= src.area, "containment_exact")
+                    check("buffer_positive_containment", bool(g.covers(src)), "minkowski_containment")
+                    check("buffer_positive_expansion", g.difference(src).area > 0, "strict_outer_expansion")
+                    check("buffer_expansion_bounds", _buffer_bounds_ok(g.bounds, src, r, tol),
+                          "axis_aligned_minkowski_bound")
+                    expected = shapely.buffer(src, r, quad_segs=quad_segs, cap_style="round", join_style="round")
+                    same_kernel(expected, g, "buffer_same_kernel_recompute")
                 else:
                     check("buffer_area_lower_bound", 0 <= g.area <= src.area, "erosion_containment_exact")
+                    check("buffer_negative_containment", bool(src.covers(g)), "erosion_subset_of_input")
+                    check("buffer_negative_contraction", g.area < src.area, "strict_inner_erosion")
+                    expected = shapely.buffer(src, r, quad_segs=quad_segs, cap_style="round", join_style="round")
+                    same_kernel(expected, g, "buffer_same_kernel_recompute")
 
     elif verb == "gis_spatial_join":
+        # RT-03: build the complete match relation and bind EVERY output row to
+        # left geometry, left attributes, right attributes and multiplicity.
+        # An equal row count is not evidence of a correct join.
         left, right = geometries(inputs[0]), geometries(inputs[1])
         predicate, summary = parameters["predicate"], parameters["summary"]
-        join_names = [f["name"] for f in output["fields"] if f["name"] not in {s["name"] for s in inputs[0]["fields"]}]
+        left_feats, right_feats = inputs[0]["geojson"]["features"], inputs[1]["geojson"]["features"]
+        left_names = [s["name"] for s in inputs[0]["fields"]]
+        seen = set(left_names)
+        join_mapping = []
+        for spec in inputs[1]["fields"]:
+            new = spec["name"] if spec["name"] not in seen else "join_" + spec["name"]
+            seen.add(new)
+            join_mapping.append((spec["name"], new))
         if len(left) * len(right) > 20000:
             unconfirm("join_count_accounting", "输入对数超过 20000 的复算预算，无法逐对核对")
+            unconfirm("join_row_binding", "输入对数超过复算预算，逐行绑定未核对")
         else:
-            counts = []
-            for g in left:
-                if predicate == "nearest":
-                    ds = [g.distance(h) for h in right]
-                    counts.append(sum(d == min(ds) for d in ds) if ds else 0)
+            pairs = []
+            for i, g in enumerate(left):
+                candidates = []
+                for j, h in enumerate(right):
+                    if predicate == "nearest":
+                        candidates.append((g.distance(h), j))
+                    elif getattr(g, predicate)(h):
+                        inter = g.intersection(h)
+                        candidates.append(((-inter.area, -inter.length), j))
+                if predicate == "nearest" and candidates:
+                    minimum = min(x[0] for x in candidates)
+                    candidates = [x for x in candidates if x[0] == minimum]
+                if not candidates:
+                    pairs.append((i, None))
+                elif summary == "first":
+                    ordered = sorted(candidates, key=lambda x: x[0])
+                    if len(ordered) > 1 and ordered[0][0] == ordered[1][0]:
+                        unconfirm("join_deterministic_first", "候选并列且 schema 未声明稳定业务键")
+                    pairs.append((i, ordered[0][1]))
                 else:
-                    counts.append(sum(bool(getattr(g, predicate)(h)) for h in right))
-            matched = sum(c > 0 for c in counts)
-            expected_rows = sum(max(1, c) if summary == "all" else 1 for c in counts)
-            check("join_count_accounting",
-                  matched + (len(left) - matched) == len(left) and output["feature_count"] == expected_rows,
-                  "same_kernel_predicate_recount")
+                    pairs.extend((i, j) for _, j in candidates)
+            matched_left = len({i for i, j in pairs if j is not None})
+            check("join_count_accounting", output["feature_count"] == len(pairs),
+                  "complete_match_relation_row_multiplicity")
             if proposal is not None:
-                check("join_proposal_counts", proposal.get("matched_count") == matched
-                      and proposal.get("unmatched_count") == len(left) - matched, "same_kernel_predicate_recount")
+                check("join_proposal_counts",
+                      proposal.get("matched_count") == matched_left
+                      and proposal.get("unmatched_count") == len(left) - matched_left,
+                      "same_kernel_predicate_recount")
+            geometry_ok = left_attrs_ok = right_attrs_ok = True
+            for row, (i, j) in enumerate(pairs[:len(feats)]):
+                f = feats[row]
+                geometry_ok &= geoms[row] is not None and bool(geoms[row].equals(left[i]))
+                left_attrs_ok &= all(f["properties"].get(n) == left_feats[i]["properties"].get(n)
+                                     for n in left_names)
+                for old, new in join_mapping:
+                    wanted = right_feats[j]["properties"].get(old) if j is not None else None
+                    right_attrs_ok &= f["properties"].get(new) == wanted
+            check("join_left_geometry_binding", geometry_ok, "row_to_left_geometry_identity")
+            check("join_left_attributes_binding", left_attrs_ok, "row_to_left_attributes_identity")
+            check("join_right_attributes_binding", right_attrs_ok,
+                  "row_to_right_attributes_exact_values_not_merely_counts")
+            check("join_summary_multiplicity",
+                  all(sum(1 for p in pairs if p[0] == i) ==
+                      (1 if summary == "first" else max(1, sum(1 for p in pairs if p[0] == i and p[1] is not None)))
+                      for i in range(len(left))), "first_vs_all_row_multiplicity")
             if summary == "first":
-                nulls_ok = all(all(f["properties"][n] is None for n in join_names)
-                               for f, c in zip(feats, counts) if c == 0)
-                check("join_left_outer_nulls", nulls_ok, "left_outer_null_semantics_readback")
+                check("join_left_outer_nulls",
+                      all(all(f["properties"].get(new) is None for _, new in join_mapping)
+                          for row, (i, j) in enumerate(pairs[:len(feats)]) if j is None),
+                      "left_outer_null_semantics_readback")
 
     elif verb in ("gis_clip", "gis_overlay"):
-        source = inputs[0]["geojson"]["features"]
-        cursor, aligned = 0, []
-        for f in feats:
-            while cursor < len(source) and source[cursor]["properties"] != f["properties"]:
-                cursor += 1
-            if cursor >= len(source):
-                aligned = None
-                break
-            aligned.append((f, source[cursor]))
-            cursor += 1
-        check("attributes_retained", aligned is not None, "subsequence_properties_readback")
-        check("count_bound", output["feature_count"] <= inputs[0]["feature_count"], "count_set_comparison")
-        if aligned is not None:
-            area_ok, subset_ok = True, True
-            for f, s in aligned:
-                out_g, in_g = _shape(f["geometry"]), _shape(s["geometry"])
-                area_ok &= out_g.area <= in_g.area * (1 + 1e-9)
-                subset_ok &= bool(in_g.covers(out_g))
-            check("subset_area_bound", area_ok, "containment_area_exact")
-            check("subset_within_input", subset_ok, "same_kernel_geos_covers")
+        # RT-02: bind rows by explicit source index / geometry identity, never by
+        # an attribute subsequence (duplicate attribute values are legal). Both
+        # input sides and result completeness are checked, including difference.
+        operation = "intersection" if verb == "gis_clip" else parameters["operation"]
+        source_feats, source_geoms = inputs[0]["geojson"]["features"], geometries(inputs[0])
+        mask = shapely.union_all(geometries(inputs[1]))
+        provenance = (proposal or {}).get("row_provenance") or []
+        expected_parts, expected_indices = [], []
+        for src_index, src in enumerate(source_geoms):
+            piece = getattr(src, operation)(mask)
+            if piece.geom_type == "GeometryCollection":
+                piece = shapely.union_all([p for p in piece.geoms if p.geom_type in ("Polygon", "MultiPolygon")])
+            if not piece.is_empty and piece.geom_type in ("Polygon", "MultiPolygon"):
+                expected_parts.append(piece)
+                expected_indices.append(src_index)
+        expected_union = shapely.union_all(expected_parts) if expected_parts else None
+        nonempty = [g for g in geoms if g is not None and not g.is_empty]
+        out_union = shapely.union_all(nonempty) if nonempty else None
+        complete = ((expected_union is None and out_union is None)
+                    or (expected_union is not None and out_union is not None
+                        and expected_union.symmetric_difference(out_union).area
+                        <= 1e-6 * max(1.0, expected_union.area)))
+        # Resolve every output row to ONE source row before judging semantics.
+        # Explicit provenance wins; geometry identity is the fallback for
+        # re-verification of older artifacts. Ambiguity is reported as
+        # unconfirmed, never as a pass and never as an attribute-subsequence
+        # guess (that guess is exactly the RT-02 false-rejection source).
+        resolved = []
+        for index in range(len(feats)):
+            entry = provenance[index] if index < len(provenance) else None
+            src_index = entry.get("source_index") if isinstance(entry, dict) else None
+            if src_index is None or not (0 <= src_index < len(source_geoms)):
+                out_g = geoms[index]
+                covering = ([i for i, sg in enumerate(source_geoms)
+                             if out_g is not None and not out_g.is_empty and sg.covers(out_g)]
+                            if out_g is not None else [])
+                src_index = covering[0] if len(covering) == 1 else None
+            resolved.append(src_index)
+
+        attrs_ok = attrs_known = True
+        row_ok = subset_ok = mask_ok = area_ok = True
+        for index, f in enumerate(feats):
+            out_g, src_index = geoms[index], resolved[index]
+            if out_g is None or out_g.is_empty:
+                row_ok = subset_ok = mask_ok = False
+                continue
+            if src_index is None:
+                attrs_known = False
+                row_ok = subset_ok = mask_ok = area_ok = False
+                continue
+            src_g = source_geoms[src_index]
+            props_ok = f["properties"] == source_feats[src_index]["properties"]
+            covers_ok = bool(src_g.covers(out_g))
+            attrs_ok &= props_ok
+            row_ok &= covers_ok and props_ok
+            subset_ok &= covers_ok
+            area_ok &= out_g.area <= src_g.area * (1 + 1e-9)
+            if operation == "intersection":
+                mask_ok &= bool(mask.covers(out_g))
+            else:
+                mask_ok &= out_g.intersection(mask).area <= 1e-9 * max(1.0, out_g.area)
+        count_ok = output["feature_count"] <= inputs[0]["feature_count"]
+
+        # The four legacy check IDs remain genuine postconditions. They are now
+        # computed from explicit row provenance rather than an attribute
+        # subsequence, and they still name the classic "enlarged output" fault.
+        check("attributes_retained", attrs_ok if attrs_known else None,
+              "explicit_source_row_property_readback")
+        check("count_bound", count_ok, "count_set_comparison")
+        check("subset_area_bound", area_ok, "containment_area_exact")
+        check("subset_within_input", subset_ok, "same_kernel_geos_covers")
+        # RT-02 structural additions: completeness, row identity, mask side.
+        check("clip_completeness", complete, "same_kernel_geos_recompute_not_independent_oracle")
+        # The declared operator emits exactly one row per non-empty source row.
+        # A duplicated row leaves the union/area/count bounds intact, so it needs
+        # an explicit multiplicity check (found by the mutation suite).
+        resolved_known = [i for i in resolved if i is not None]
+        check("clip_row_multiplicity",
+              len(resolved) == len(expected_indices)
+              and len(resolved_known) == len(resolved)
+              and sorted(resolved_known) == sorted(expected_indices),
+              "one_output_row_per_nonempty_source_row")
+        check("clip_source_row_binding", row_ok,
+              "explicit_source_index_or_geometry_identity_not_attribute_subsequence")
+        check("clip_mask_side_constraint", mask_ok, "mask_covers_intersection_or_difference_exclusion")
 
     elif verb == "gis_reproject":
         from rasterio.warp import transform_geom
@@ -640,21 +868,33 @@ def _vector_semantic_checks(ctx, output, proposal, check, unconfirm):
         src_crs, dst_crs = inputs[0]["crs"]["wkt"], output["crs"]["wkt"]
         sample = feats[::max(1, len(feats) // 8)][:8]
         src_sample = inputs[0]["geojson"]["features"][::max(1, len(feats) // 8)][:8]
-        worst = 0.0
+        # RT-11: one contract for empty collections / empty geometries / null
+        # geometries, applied consistently on compute and verify sides. Empty
+        # geometries keep their emptiness and attributes; they are never sent to
+        # a coordinate round-trip or an extremum reduction over zero rows.
+        worst, empty_ok, null_ok = 0.0, True, True
         for f, s in zip(sample, src_sample):
             if f["geometry"] is None or s["geometry"] is None:
+                null_ok &= f["geometry"] is None and s["geometry"] is None
+                continue
+            f_geom, s_geom = _shape(f["geometry"]), _shape(s["geometry"])
+            if f_geom.is_empty or s_geom.is_empty:
+                empty_ok &= f_geom.is_empty and s_geom.is_empty
                 continue
             back = transform_geom(dst_crs, src_crs, f["geometry"], precision=-1)
-            a, b = _shape(back), _shape(s["geometry"])
+            a, b = _shape(back), s_geom
             ca, cb = shapely.get_coordinates(a), shapely.get_coordinates(b)
             if ca.shape != cb.shape:
                 worst = float("inf")
                 break
             scale = max(1.0, float(abs(cb).max()) if cb.size else 1.0)
             worst = max(worst, float(abs(ca - cb).max()) / scale)
-        check("reproject_roundtrip_spot", worst <= 1e-6, "same_kernel_proj_roundtrip",
-              )
-        coords = shapely.get_coordinates([_shape(f["geometry"]) for f in inputs[0]["geojson"]["features"] if f["geometry"] is not None])
+        check("reproject_empty_geometry_contract", empty_ok,
+              "empty_geometry_emptiness_and_attribute_preservation")
+        check("reproject_null_geometry_contract", null_ok, "null_geometry_contract")
+        check("reproject_roundtrip_spot", worst <= 1e-6, "same_kernel_proj_roundtrip")
+        coords = shapely.get_coordinates([_shape(f["geometry"]) for f in inputs[0]["geojson"]["features"]
+                                          if f["geometry"] is not None and not _shape(f["geometry"]).is_empty])
         if len(coords) == 0:
             check("reproject_bounds_consistency", output["bounds"] is None, "empty_bounds_readback")
         elif len(coords) <= 4096:
@@ -983,25 +1223,42 @@ CHECK_REGISTRY = {
     "gis_reproject": {"checks": [
         {"id": "reproject_count_unchanged", "method": "count_readback", "basis": "计数精确", "layer": "commit+preview+verify"},
         {"id": "reproject_attributes_unchanged", "method": "properties_readback", "basis": "属性逐条精确", "layer": "commit+preview+verify"},
+        {"id": "reproject_empty_geometry_contract", "method": "empty_geometry_emptiness_and_attribute_preservation", "basis": "RT-11 空几何保持为空且属性保留；不对零坐标数组做变换/极值归约", "layer": "commit+preview+verify"},
+        {"id": "reproject_null_geometry_contract", "method": "null_geometry_contract", "basis": "RT-11 null 几何保持 null，计算与验证两侧契约一致", "layer": "commit+preview+verify"},
         {"id": "reproject_roundtrip_spot", "method": "same_kernel_proj_roundtrip", "basis": "同核 PROJ 往返抽查≤8记录；绝对容差 1e-6×max(1,|坐标|)，同核浮点噪声，非独立 oracle", "layer": "commit+preview+verify"},
         {"id": "reproject_bounds_consistency", "method": "same_kernel_transformed_bounds", "basis": "输入坐标≤4096 全量变换比对边界，容差 1e-6×跨度；超限降级无法确认", "layer": "commit+preview+verify"}]},
     "gis_convert_format": {"checks": [
         {"id": "copy_logical_content", "method": "logical_fingerprint_equality", "basis": "逻辑指纹相等", "layer": "commit+preview"}]},
     "gis_buffer": {"checks": [
         {"id": "buffer_geometry_valid", "method": "same_kernel_geos_is_valid", "basis": "GEOS 有效性（同核自洽）", "layer": "commit+preview+verify"},
-        {"id": "buffer_area_upper_bound", "method": "analytic_parallel_body_upper_bound", "basis": "解析界 A+2Lr+πr²（Steiner 平行体上界；线要素精确主项 2Lr+πr²）；quad_segs=8 内接近似只更小；相对松弛 1e-9", "layer": "commit+preview+verify"},
-        {"id": "buffer_area_lower_bound", "method": "containment_exact", "basis": "r>0 包含关系 area≥A；r<0 侵蚀 0≤area≤A；精确", "layer": "commit+preview+verify"},
-        {"id": "buffer_count_semantics", "method": "count_and_schema_set_comparison", "basis": "dissolve=false 计数==输入且属性逐条保留；true 非空→1 条且 schema 空", "layer": "commit+preview+verify"}]},
+        {"id": "buffer_area_upper_bound", "method": "analytic_parallel_body_upper_bound_per_part", "basis": "RT-09 逐部件解析界 Σ(Ai+2Li·r+πr²)（Steiner 平行体上界，MultiPoint/多部件/空部件均覆盖）；quad_segs=8 内接近似只更小；相对松弛 1e-9，未放大容差", "layer": "commit+preview+verify"},
+        {"id": "buffer_area_lower_bound", "method": "containment_exact", "basis": "r>0 面积≥源几何（或源的并）；r<0 侵蚀 0≤area≤源面积；精确；dissolve 与逐要素分支语义一致", "layer": "commit+preview+verify"},
+        {"id": "buffer_count_semantics", "method": "count_and_schema_set_comparison", "basis": "dissolve=false 计数==输入且属性逐条保留；true 非空→1 条且 schema 空", "layer": "commit+preview+verify"},
+        {"id": "buffer_positive_containment", "method": "minkowski_containment", "basis": "RT-01 r>0：输出必须覆盖每个非空源部件（面积界无法证明位置）", "layer": "commit+preview+verify"},
+        {"id": "buffer_positive_expansion", "method": "strict_outer_expansion", "basis": "RT-01 r>0：输出减去源的面积>0，排除原地不动/缩小", "layer": "commit+preview+verify"},
+        {"id": "buffer_expansion_bounds", "method": "axis_aligned_minkowski_bound", "basis": "RT-01 r>0：输出 bbox 必须落在源 bbox 外扩 r 之内（可证空间约束），捕捉平移/缩小", "layer": "commit+preview+verify"},
+        {"id": "buffer_same_kernel_recompute", "method": "same_kernel_geos_consistency_not_independent_oracle", "basis": "RT-01 用声明的 quad_segs/cap/join 同核复算并比对对称差面积（自洽性，非独立 oracle）", "layer": "commit+preview+verify"},
+        {"id": "buffer_negative_erosion", "method": "erosion_area_contraction", "basis": "r<0 dissolve：面积不超过源面积之和", "layer": "commit+preview+verify"},
+        {"id": "buffer_negative_containment", "method": "erosion_subset_of_input", "basis": "r<0：输出必须被源包含", "layer": "commit+preview+verify"},
+        {"id": "buffer_negative_contraction", "method": "strict_inner_erosion", "basis": "r<0：面积严格小于源面积", "layer": "commit+preview+verify"}]},
     "gis_clip": {"checks": [
-        {"id": "attributes_retained", "method": "subsequence_properties_readback", "basis": "输出属性为输入子序列（精确）", "layer": "commit+preview+verify"},
+        {"id": "attributes_retained", "method": "explicit_source_row_property_readback", "basis": "RT-02 输出属性按显式源行索引逐条精确比对；不再用属性子序列（重复属性合法，子序列会误拒）；源行不可判定则记为未确认", "layer": "commit+preview+verify"},
         {"id": "count_bound", "method": "count_set_comparison", "basis": "输出计数≤输入计数", "layer": "commit+preview+verify"},
-        {"id": "subset_area_bound", "method": "containment_area_exact", "basis": "逐条面积≤对应输入面积（包含关系，相对松弛 1e-9）", "layer": "commit+preview+verify"},
-        {"id": "subset_within_input", "method": "same_kernel_geos_covers", "basis": "同核 covers 子集性（自洽）", "layer": "commit+preview+verify"}]},
+        {"id": "subset_area_bound", "method": "containment_area_exact", "basis": "逐条面积≤其绑定源行面积（包含关系，相对松弛 1e-9）", "layer": "commit+preview+verify"},
+        {"id": "subset_within_input", "method": "same_kernel_geos_covers", "basis": "同核 covers 子集性（自洽）", "layer": "commit+preview+verify"},
+        {"id": "clip_completeness", "method": "same_kernel_geos_recompute_not_independent_oracle", "basis": "RT-02 输出几何并集必须等于逐源 intersection 的并集；捕捉漏行/错几何（自洽性，非独立 oracle）", "layer": "commit+preview+verify"},
+        {"id": "clip_row_multiplicity", "method": "one_output_row_per_nonempty_source_row", "basis": "RT-02 算子对每个非空源行恰好输出一行；重复行不改变并集/面积/计数界，须单独核对源索引多重集", "layer": "commit+preview+verify"},
+        {"id": "clip_source_row_binding", "method": "explicit_source_index_or_geometry_identity_not_attribute_subsequence", "basis": "RT-02 每行绑定到唯一源行的几何与属性；显式 row_provenance 优先，几何恒等兜底", "layer": "commit+preview+verify"},
+        {"id": "clip_mask_side_constraint", "method": "mask_covers_intersection_or_difference_exclusion", "basis": "RT-02 intersection 每行被掩膜覆盖；difference 每行与掩膜交集面积≈0", "layer": "commit+preview+verify"}]},
     "gis_overlay": {"checks": [
-        {"id": "attributes_retained", "method": "subsequence_properties_readback", "basis": "输出属性为输入子序列（精确）", "layer": "commit+preview+verify"},
+        {"id": "attributes_retained", "method": "explicit_source_row_property_readback", "basis": "RT-02 输出属性按显式源行索引逐条精确比对；不再用属性子序列", "layer": "commit+preview+verify"},
         {"id": "count_bound", "method": "count_set_comparison", "basis": "输出计数≤输入计数", "layer": "commit+preview+verify"},
-        {"id": "subset_area_bound", "method": "containment_area_exact", "basis": "intersection/difference 均⊆输入，面积界精确", "layer": "commit+preview+verify"},
-        {"id": "subset_within_input", "method": "same_kernel_geos_covers", "basis": "同核 covers 子集性（自洽）", "layer": "commit+preview+verify"}]},
+        {"id": "subset_area_bound", "method": "containment_area_exact", "basis": "intersection/difference 均⊆绑定源行，面积界精确", "layer": "commit+preview+verify"},
+        {"id": "subset_within_input", "method": "same_kernel_geos_covers", "basis": "同核 covers 子集性（自洽）", "layer": "commit+preview+verify"},
+        {"id": "clip_completeness", "method": "same_kernel_geos_recompute_not_independent_oracle", "basis": "RT-02 输出并集==逐源叠加结果并集（含 difference 排除区）", "layer": "commit+preview+verify"},
+        {"id": "clip_row_multiplicity", "method": "one_output_row_per_nonempty_source_row", "basis": "RT-02 每个非空源行恰好一行（含 difference），重复行须拦截", "layer": "commit+preview+verify"},
+        {"id": "clip_source_row_binding", "method": "explicit_source_index_or_geometry_identity_not_attribute_subsequence", "basis": "RT-02 每行绑定唯一源行的几何与属性", "layer": "commit+preview+verify"},
+        {"id": "clip_mask_side_constraint", "method": "mask_covers_intersection_or_difference_exclusion", "basis": "RT-02 intersection 被掩膜覆盖；difference 排除掩膜区域", "layer": "commit+preview+verify"}]},
     "gis_dissolve": {"checks": [
         {"id": "dissolve_fields_only", "method": "schema_readback", "basis": "仅保留分组字段", "layer": "commit+preview"},
         {"id": "unique_output_group", "method": "group_key_uniqueness", "basis": "每组唯一", "layer": "commit+preview"},
@@ -1044,9 +1301,15 @@ CHECK_REGISTRY = {
         {"id": "import_source_fingerprint_binding", "method": "source_document_sha256", "basis": "源文档 sha256==提案 source_fingerprint；复核无提案降级无法确认", "layer": "commit+preview"},
         {"id": "import_content_fingerprint", "method": "source_to_output_logical_sha256", "basis": "输出指纹==源文档验证后的逻辑指纹（构造真值）", "layer": "commit+preview+verify"}]},
     "gis_spatial_join": {"checks": [
-        {"id": "join_count_accounting", "method": "same_kernel_predicate_recount", "basis": "同核逐对复算 matched/unmatched 与输出行数（≤20000 对，超限降级）", "layer": "commit+preview+verify"},
+        {"id": "join_count_accounting", "method": "complete_match_relation_row_multiplicity", "basis": "RT-03 构造完整匹配关系 pairs，输出行数==pairs 长度（≤20000 对，超限降级）", "layer": "commit+preview+verify"},
         {"id": "join_proposal_counts", "method": "same_kernel_predicate_recount", "basis": "提案 matched/unmatched==复算值", "layer": "commit+preview"},
-        {"id": "join_left_outer_nulls", "method": "left_outer_null_semantics_readback", "basis": "summary=first 未匹配行连接字段全 null", "layer": "commit+preview+verify"}]},
+        {"id": "join_left_outer_nulls", "method": "left_outer_null_semantics_readback", "basis": "summary=first 未匹配行连接字段全 null", "layer": "commit+preview+verify"},
+        {"id": "join_left_geometry_binding", "method": "row_to_left_geometry_identity", "basis": "RT-03 每行几何==其左行几何（计数相等不足以证明连接正确）", "layer": "commit+preview+verify"},
+        {"id": "join_left_attributes_binding", "method": "row_to_left_attributes_identity", "basis": "RT-03 每行左属性逐字段等于其左行", "layer": "commit+preview+verify"},
+        {"id": "join_right_attributes_binding", "method": "row_to_right_attributes_exact_values_not_merely_counts", "basis": "RT-03 每行右属性==其匹配右行的精确值；未匹配为 null（捕捉属性错配）", "layer": "commit+preview+verify"},
+        {"id": "join_summary_multiplicity", "method": "first_vs_all_row_multiplicity", "basis": "RT-03 summary=first 每左行恰 1 行；all 按候选数展开", "layer": "commit+preview+verify"},
+        {"id": "join_deterministic_first", "method": "insufficient_context", "basis": "候选并列且无稳定业务键时如实记为未确认", "layer": "commit+preview+verify"},
+        {"id": "join_row_binding", "method": "insufficient_context", "basis": "输入对数超预算时逐行绑定记为未确认", "layer": "commit+preview+verify"}]},
     "gis_raster_calc": {"checks": [
         {"id": "grid_and_pixels_readback", "method": "sqlite_exact_raster_snapshot", "basis": "持久栅格==输出栅格（精确）", "layer": "commit+preview+verify"},
         {"id": "raster_nodata_accounting", "method": "pixel_count_accounting", "basis": "valid+nodata==w*h", "layer": "commit+preview+verify"},
@@ -1070,7 +1333,7 @@ CHECK_REGISTRY = {
         {"id": "raster_nodata_accounting", "method": "pixel_count_accounting", "basis": "valid+nodata==w*h", "layer": "commit+preview+verify"},
         {"id": "raster_grid_alignment", "method": "grid_property_exact_comparison", "basis": "网格==输入", "layer": "commit+preview+verify"},
         {"id": "raster_nodata_mask_semantics", "method": "horn_3x3_mask_exact", "basis": "掩膜==边界＋3x3 含 NoData", "layer": "commit+preview+verify"},
-        {"id": "raster_pixel_spot", "method": "same_formula_independent_horn_recompute_float32_margin", "basis": "独立 Horn 光照公式复算；uint8 绝对容差±1（GDAL traditional 1..255 舍入，同公式自洽）", "layer": "commit+preview+verify"}]},
+        {"id": "raster_pixel_spot", "method": "gdal_3122_traditional_uint8_exact_encoding", "basis": "RT-10 锁定 Rasterio-bundled GDAL 3.12.2 traditional 编码：1+floor(254·clamp(shade,0,1)+0.5)，暗部钳到 1、NoData 保持 null；逐像元精确相等，不放大 ±1 容差", "layer": "commit+preview+verify"}]},
     "gis_reclassify": {"checks": [
         {"id": "grid_and_pixels_readback", "method": "sqlite_exact_raster_snapshot", "basis": "精确读回", "layer": "commit+preview+verify"},
         {"id": "raster_nodata_accounting", "method": "pixel_count_accounting", "basis": "valid+nodata==w*h", "layer": "commit+preview+verify"},

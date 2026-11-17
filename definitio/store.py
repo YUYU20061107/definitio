@@ -38,8 +38,16 @@ class Store:
                     id TEXT PRIMARY KEY, request_key TEXT UNIQUE NOT NULL, name TEXT UNIQUE NOT NULL,
                     task_id TEXT, step_id TEXT, dataset_id TEXT NOT NULL, sha256 TEXT NOT NULL,
                     sha256_dataset TEXT NOT NULL, bytes INTEGER NOT NULL, document TEXT NOT NULL,
-                    created_at TEXT NOT NULL);
+                    created_at TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'verified');
+                CREATE TABLE IF NOT EXISTS external_side_effect_phases (
+                    task_id TEXT PRIMARY KEY, step_id TEXT NOT NULL, phase TEXT NOT NULL,
+                    at TEXT NOT NULL, resolved INTEGER NOT NULL DEFAULT 0, outcome TEXT);
             """)
+            # Migrations for workspaces created before the recoverable publish
+            # state machine and the external side-effect phase marker.
+            artifact_columns = {row[1] for row in db.execute("PRAGMA table_info(file_artifacts)")}
+            if "state" not in artifact_columns:
+                db.execute("ALTER TABLE file_artifacts ADD COLUMN state TEXT NOT NULL DEFAULT 'verified'")
             # Run the head migration once. Historical versions must never become heads again.
             if not db.execute("SELECT 1 FROM sqlite_master WHERE name='head_migration_v1'").fetchone():
                 db.execute("INSERT INTO dataset_heads SELECT name,id FROM datasets")
@@ -199,21 +207,62 @@ class Store:
             raise GISFault("ALREADY_EXISTS", "目标名称已存在；不会覆盖", target=name) from exc
         return document
 
-    def save_file_artifact(self, record, db=None):
+    # RT-07: only published/verified registrations occupy a request_key or a
+    # filename. rolled_back / published_unverified rows are retained as evidence
+    # but never become a permanent conflict on recovery.
+    ACTIVE_ARTIFACT_STATES = ("published", "verified")
+
+    def save_file_artifact(self, record, db=None, state=None):
         if db is None:
             with self.lock, self.connect() as conn:
-                return self.save_file_artifact(record, conn)
-        db.execute("INSERT INTO file_artifacts VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                   (record["id"], record["request_key"], record["name"], record["task_id"], record["step_id"],
-                    record["dataset_id"], record["sha256"], record["sha256_dataset"], record["bytes"],
-                    canonical(record), record["created_at"]))
-        return record
+                return self.save_file_artifact(record, conn, state)
+        effective = state or record.get("state", "verified")
+        stored = {**record, "state": effective}
+        db.execute("""INSERT INTO file_artifacts
+                      (id, request_key, name, task_id, step_id, dataset_id, sha256,
+                       sha256_dataset, bytes, document, created_at, state)
+                      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                   (stored["id"], stored["request_key"], stored["name"], stored["task_id"], stored["step_id"],
+                    stored["dataset_id"], stored["sha256"], stored["sha256_dataset"], stored["bytes"],
+                    canonical(stored), stored["created_at"], effective))
+        return stored
 
-    def _file_artifact_row(self, column, value, db=None):
+    def set_file_artifact_state(self, reference, state, reason=None, db=None):
+        if db is None:
+            with self.lock, self.connect() as conn:
+                return self.set_file_artifact_state(reference, state, reason, conn)
+        record = self.file_artifact(reference, db)
+        updated = {**record, "state": state}
+        if reason is not None:
+            updated["state_reason"] = reason
+        db.execute("UPDATE file_artifacts SET state=?, document=? WHERE id=?",
+                   (state, canonical(updated), record["id"]))
+        return updated
+
+    def release_file_artifact_keys(self, reference, db=None):
+        """Free request_key/name UNIQUE slots after a rollback, keeping the row."""
+        if db is None:
+            with self.lock, self.connect() as conn:
+                return self.release_file_artifact_keys(reference, conn)
+        record = self.file_artifact(reference, db)
+        if "original_request_key" in record:
+            return record
+        updated = {**record,
+                   "original_request_key": record["request_key"], "original_name": record["name"],
+                   "request_key": record["request_key"] + ":rolled_back:" + record["id"],
+                   "name": record["name"] + ".rolled_back." + record["id"]}
+        db.execute("UPDATE file_artifacts SET request_key=?, name=?, document=? WHERE id=?",
+                   (updated["request_key"], updated["name"], canonical(updated), record["id"]))
+        return updated
+
+    def _file_artifact_row(self, column, value, db=None, active_only=False):
         if db is None:
             with self.connect() as conn:
-                return self._file_artifact_row(column, value, conn)
-        row = db.execute(f"SELECT document FROM file_artifacts WHERE {column}=?", (value,)).fetchone()
+                return self._file_artifact_row(column, value, conn, active_only)
+        sql = f"SELECT document FROM file_artifacts WHERE {column}=?"
+        if active_only:
+            sql += " AND state IN ('published','verified')"
+        row = db.execute(sql, (value,)).fetchone()
         return json.loads(row[0]) if row else None
 
     def file_artifact(self, reference, db=None):
@@ -222,15 +271,37 @@ class Store:
         return record
 
     def file_artifact_by_key(self, request_key, db=None):
-        return self._file_artifact_row("request_key", request_key, db)
+        return self._file_artifact_row("request_key", request_key, db, active_only=True)
 
     def file_artifact_by_name(self, name, db=None):
-        return self._file_artifact_row("name", name, db)
+        return self._file_artifact_row("name", name, db, active_only=True)
 
     def file_artifacts(self):
+        """All registrations, including rolled-back ones, for evidence recount."""
         with self.connect() as db:
             rows = db.execute("SELECT document FROM file_artifacts ORDER BY created_at").fetchall()
         return [json.loads(row[0]) for row in rows]
+
+    # RT-06: an external side-effect phase is committed on its own connection,
+    # OUTSIDE the step's SQLite transaction, so a process exit after the first
+    # POST cannot roll the marker back with the transaction.
+    def begin_external_phase(self, task_id, step_id, phase="request_pending"):
+        with self.lock, self.connect() as db:
+            db.execute("""INSERT INTO external_side_effect_phases(task_id,step_id,phase,at,resolved,outcome)
+                          VALUES (?,?,?,?,0,NULL)
+                          ON CONFLICT(task_id) DO UPDATE SET step_id=excluded.step_id,
+                          phase=excluded.phase, at=excluded.at, resolved=0, outcome=NULL""",
+                       (task_id, step_id, phase, now()))
+
+    def external_phase(self, task_id):
+        with self.connect() as db:
+            row = db.execute("SELECT * FROM external_side_effect_phases WHERE task_id=?", (task_id,)).fetchone()
+        return dict(row) if row else None
+
+    def resolve_external_phase(self, task_id, outcome):
+        with self.lock, self.connect() as db:
+            db.execute("UPDATE external_side_effect_phases SET resolved=1, outcome=? WHERE task_id=?",
+                       (outcome, task_id))
 
     def save_task(self, task, db=None):
         if db is None:
@@ -262,12 +333,27 @@ class Store:
 
     def recover_interrupted(self):
         with self.lock, self.connect() as db:
+            # RT-06: an unresolved external phase means requests were already on
+            # the wire. SQLite rollback cannot undo them, so the task must be
+            # isolated even if its last persisted state looked like a failure.
+            open_phases = {r[0] for r in db.execute(
+                "SELECT task_id FROM external_side_effect_phases WHERE resolved=0")}
             for row in db.execute("SELECT document FROM tasks").fetchall():
                 task = json.loads(row[0])
-                if task["task_state"] in ("EXECUTING", "PRECHECKED"):
-                    task.update(task_state="ISOLATED", state_as_of=now(),
-                                error={"code": "TARGET_STATE_UNKNOWN", "message": "进程在任务结束前退出；须人工核查后新建任务"})
-                    for step in task["steps"]:
-                        if step["state"] == "EXECUTING":
-                            step["state"] = "ISOLATED"
-                    self.save_task(task, db)
+                external = task["id"] in open_phases
+                interrupted = task["task_state"] in ("EXECUTING", "PRECHECKED")
+                if not (interrupted or external) or task["task_state"] == "ISOLATED":
+                    continue
+                reason = ("外部副作用相位后进程退出；服务侧状态未知，须人工核查，不得声称已回滚"
+                          if external else "进程在任务结束前退出；须人工核查后新建任务")
+                task.update(task_state="ISOLATED", state_as_of=now(),
+                            error={"code": "TARGET_STATE_UNKNOWN", "message": reason,
+                                   "external_phase_open": external})
+                task["execution_started"] = bool(task.get("execution_started")) or external
+                for step in task["steps"]:
+                    if step["state"] in ("EXECUTING", "FAILED") and external:
+                        step["state"] = "ISOLATED"
+                        step["execution_started"] = True
+                    elif step["state"] == "EXECUTING":
+                        step["state"] = "ISOLATED"
+                self.save_task(task, db)

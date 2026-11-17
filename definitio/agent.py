@@ -310,7 +310,8 @@ class AgentService:
                 "confirmation_required": t["governance_state"]["confirmation_required"],
                 "output_refs": t["output_refs"], "evidence_refs": t["evidence_refs"],
                 "commit_state": t.get("commit_state"), "file_artifact_refs": t.get("file_artifact_refs", []),
-                "readback": t.get("readback"), "resumed_from": t.get("resumed_from"),
+                "readback": t.get("readback"), "live_status": t.get("live_status"),
+                "resumed_from": t.get("resumed_from"),
                 "versions": t["versions"], "record_uri": f"definitio://tasks/{t['id']}/record",
                 "steps": [{k: s.get(k) for k in ("id", "index", "verb", "vid", "level", "state", "output_ref", "evidence_ref")}
                           for s in t["steps"]]}
@@ -338,41 +339,122 @@ class AgentService:
             return failure(GISFault(error["code"], error["message"], **error.get("details", {})), data)
         return success(data, [{"tool": "task_get", "arguments": {"task_id": task["id"]}, "reason": "Persistent status and output handles"}])
 
+    @staticmethod
+    def _result_binding(step, evidence):
+        """RT-08: bind the actually persisted result to the evidence receipt."""
+        persisted = step.get("result")
+        witnessed = evidence.get("result")
+        same = persisted == witnessed
+        body = {k: v for k, v in evidence.items() if k != "evidence_digest"}
+        digest_ok = digest(body) == evidence.get("evidence_digest")
+        return {"passed": bool(same and digest_ok),
+                "persisted_result_matches_evidence": bool(same),
+                "evidence_digest_matches": bool(digest_ok),
+                "evidence_present": bool(witnessed is not None or evidence.get("evidence_digest")),
+                "method": "persisted_result_vs_evidence_result_and_digest"}
+
+    @staticmethod
+    def _verify_proposal(step, evidence, output):
+        """Reconstruct a proposal from persisted state.
+
+        RT-08: the same verifier function must execute the same checks in
+        commit/preview/verify. Passing proposal=None used to silently turn the
+        verify path into a no-op, so a read-only result was never re-judged.
+        The reconstruction is explicitly a same-kernel readback, never an
+        independent oracle. Data fields come from the persisted output; receipt
+        fields come from evidence; the mutable step.result is the check subject.
+        """
+        proposal = {}
+        if output is not None and "geojson" in output:
+            proposal.update(geojson=output["geojson"], schema=output["fields"], crs=output["crs"])
+        for key in ("group_manifest", "group_count", "zone_pixel_counts", "before_count",
+                    "added_count", "after_count", "matched_count", "unmatched_count",
+                    "source_fingerprint", "buffer_parameters", "polygon_only",
+                    "coordinate_operation", "lifecycle", "row_provenance"):
+            if key in evidence:
+                proposal[key] = evidence[key]
+        if output is None and step.get("result") is not None:
+            proposal["result"] = step["result"]
+        return proposal or None
+
     def verify_task(self, task):
         """Agent-initiated verify path: the very same predicates the commit path must call."""
         from . import verifier
+        from . import commit as commit_module
         from .commit import planned_destructions
         from .pointcloud import extra_references
         absent = planned_destructions(task)
         planned = [ref for ref in task["input_snapshot_refs"] if ref["id"] not in absent]
-        steps = []
+        steps, skipped = [], []
+        expected = 0
         for step in task["steps"]:
             if step["state"] != "COMMITTED" or step["verb"] == "gis_delete_dataset":
+                skipped.append({"step": step["index"], "step_id": step["id"],
+                                "reason": "step_not_committed" if step["state"] != "COMMITTED" else "destroy_step_out_of_scope"})
                 continue
-            evidence = self.store.evidence(step["evidence_ref"])
-            p = evidence.get("effective_parameters", step["parameters"])
-            spec = SPECS[step["verb"]]
-            inputs = []
-            for key in spec[4]:
-                inputs.extend(self.store.dataset(ref) for ref in (p[key] if key == "inputs" else [p[key]]))
-            inputs.extend(self.store.dataset(ref) for ref in extra_references(step["verb"], p))
-            if step["verb"] == "gis_run_processing":
-                inputs.append(self.store.dataset(p["params"]["INPUT"]))
-            if step["verb"] == "gis_run_gp":
-                inputs.append(self.store.dataset(p["args"]["in_rows"]))
-            output = self.store.dataset(step["output_ref"]) if step.get("output_ref") else None
-            result = verifier.run(verifier.context(
-                stage="verify", verb=step["verb"], vid=step["vid"], parameters=p, inputs=inputs,
-                proposal=None, output=output, store=self.store, db=None,
-                planned_inputs=planned, write_scope=task.get("write_scope"),
-                actual_writes=task.get("actual_writes", []), authorization=task["governance_state"],
-                workspace=str(self.store.path.parent), file_artifact=None))
-            steps.append({"step": step["index"], "step_id": step["id"], "evidence_ref": step["evidence_ref"], **result})
+            expected += 1
+            if not step.get("evidence_ref"):
+                skipped.append({"step": step["index"], "step_id": step["id"], "reason": "evidence_missing"})
+                continue
+            try:
+                evidence = self.store.evidence(step["evidence_ref"])
+                p = evidence.get("effective_parameters", step["parameters"])
+                spec = SPECS[step["verb"]]
+                inputs = []
+                for key in spec[4]:
+                    inputs.extend(self.store.dataset(ref) for ref in (p[key] if key == "inputs" else [p[key]]))
+                inputs.extend(self.store.dataset(ref) for ref in extra_references(step["verb"], p))
+                if step["verb"] == "gis_run_processing":
+                    inputs.append(self.store.dataset(p["params"]["INPUT"]))
+                if step["verb"] == "gis_run_gp":
+                    inputs.append(self.store.dataset(p["args"]["in_rows"]))
+                output = self.store.dataset(step["output_ref"]) if step.get("output_ref") else None
+                binding = self._result_binding(step, evidence)
+                proposal = self._verify_proposal(step, evidence, output)
+                result = verifier.run(verifier.context(
+                    stage="verify", verb=step["verb"], vid=step["vid"], parameters=p, inputs=inputs,
+                    proposal=proposal, output=output, store=self.store, db=None,
+                    planned_inputs=planned, write_scope=task.get("write_scope"),
+                    actual_writes=task.get("actual_writes", []), authorization=task["governance_state"],
+                    workspace=str(self.store.path.parent), file_artifact=None))
+                result["result_binding"] = binding
+                result["proposal_source"] = "reconstructed_from_persisted_output_and_evidence" if proposal else "none"
+                if not binding["passed"]:
+                    result["ok"] = False
+                    result["found"].append({"predicate": "persisted_result_binding", "passed": False,
+                                            "observation": "持久化 result 与 evidence 的 result/digest 不一致",
+                                            "method": binding["method"], "details": binding})
+                steps.append({"step": step["index"], "step_id": step["id"],
+                              "evidence_ref": step["evidence_ref"], **result})
+            except Exception as exc:
+                skipped.append({"step": step["index"], "step_id": step["id"],
+                                "reason": f"verify_failed: {type(exc).__name__}: {exc}"[:300]})
+        # RT-05: every promised product, including file artifacts, is re-read now.
+        artifacts = commit_module.live_readback(self.store, task)
+        if task["task_state"] in ("FAILED", "ISOLATED"):
+            status = "incomplete"
+        elif expected == 0:
+            status = "not_applicable"
+        elif len(steps) < expected:
+            status = "incomplete"
+        elif artifacts["state"] != "confirmed":
+            status = "corrupted"
+        else:
+            status = "complete"
+        coverage = {"expected_steps": expected, "checked_steps": len(steps), "skipped_steps": len(skipped),
+                    "skipped_items": skipped,
+                    "file_artifacts_expected": len(task.get("file_artifact_refs", [])),
+                    "file_artifacts_checked": len(artifacts["file_artifacts"]),
+                    "datasets_checked": len(artifacts["datasets"]),
+                    "coverage_ratio": (len(steps) / expected) if expected else 0.0}
+        ok = status == "complete" and coverage["expected_steps"] > 0 and all(item["ok"] for item in steps)
         return {"format": verifier.VERIFICATION_FORMAT, "task_id": task["id"], "steps": steps,
-                "ok": all(item["ok"] for item in steps),
+                "ok": ok, "status": status, "coverage": coverage, "live_status": artifacts,
                 "predicates_digest": digest([predicate.__name__ for predicate in verifier.PREDICATES]),
                 "limits": ["Re-verification reads current persisted state; it is not an independent geometry oracle",
-                           "Operator-level invariants were judged at commit time; their receipts are in evidence.postcondition_checks"]}
+                           "Verify reconstructs the proposal from persisted output/evidence; reconstructed data fields are same-kernel self-consistency checks",
+                           "Operator-level invariants were judged at commit time; their receipts are in evidence.postcondition_checks",
+                           "status=not_applicable/incomplete/corrupted is never reported as a complete ok"]}
 
     def _operation(self, name, arguments, session=None):
         from .completion import EXPLICIT_ONLY, precheck
@@ -401,11 +483,24 @@ class AgentService:
         params = {k: v for k, v in arguments.items() if k not in ("request_id", "authorization_id")}
         request_digest = digest({"tool": name, "parameters": params, **({"authorization_id": arguments["authorization_id"]} if arguments.get("authorization_id") else {})})
         old = self._existing(request_id, request_digest)
+        from . import commit as commit_module
+        effects = None
+        if spec[2] != "R0":
+            effects = {"dataset": 1}
+            if name in commit_module.HEAD_CHANGE_VERBS:
+                effects["logical_head"] = 1
+            if name in commit_module.EXTERNAL_PUBLISH_VERBS:
+                effects["external_publish"] = 1
         confirmed = self.authorizations.authorize(arguments, session, request_id,
-                                                  [(name, write_target(name, arguments))] if spec[2] != "R0" else [], replay=bool(old))
+                                                  [(name, write_target(name, arguments))] if spec[2] != "R0" else [],
+                                                  effects=effects, replay=bool(old))
         task, replayed = self._task_request(request_id, request_digest, f"Agent: {name}", [{"verb": name, "parameters": params}])
         if not replayed and arguments.get("authorization_id"):
-            task["governance_state"].update(authorization_id=arguments["authorization_id"], request_id=request_id)
+            grant = self.authorizations.get(arguments["authorization_id"], session)
+            task["governance_state"].update(authorization_id=arguments["authorization_id"], request_id=request_id,
+                                            grant_prefix=grant["prefix"],
+                                            grant_capabilities=list(grant["capabilities"]),
+                                            grant_max_file_exports=grant["max_file_exports"])
             self.store.save_task(task)
         if task["task_state"] in ("DECLARED", "COMMITTED"):
             task = self.runtime.execute(task["id"], task["plan_digest"], confirmed)
@@ -572,14 +667,24 @@ class AgentService:
                 precheck(self.runtime, s["verb"], s["parameters"])
             require(not a.get("authorization_id") or not any(s["verb"] in EXPLICIT_ONLY | {"gis_rename_dataset", "gis_append_dataset"} for s in task["steps"]), "CONFIRM_REQUIRED", "该操作须逐次显式确认")
             from . import resume as resume_module
+            from .commit import side_effect_inventory
             resuming = bool(a.get("resume"))
             start = resume_module.next_resumable_index(task) if resuming else 0
             writes = [(s["verb"], s.get("head_bindings", {}).get("target", write_target(s["verb"], s["parameters"])))
                       for s in task["steps"][start:] if s["level"] != "R0"]
-            confirmed = self.authorizations.authorize(a, session, task["id"], writes,
+            effects = side_effect_inventory(task)
+            confirmed = self.authorizations.authorize(a, session, task["id"], writes, effects,
                                                       replay=task["task_state"] != "DECLARED" and not resuming)
             if task["task_state"] == "DECLARED" and a.get("authorization_id"):
-                task["governance_state"]["authorization_id"] = a["authorization_id"]
+                grant = self.authorizations.get(a["authorization_id"], session)
+                # Carry the grant's real prefix and capabilities into every file
+                # check path. A plan's own exports/digest is never an authority.
+                task["governance_state"].update(
+                    authorization_id=a["authorization_id"],
+                    grant_prefix=grant["prefix"],
+                    grant_capabilities=list(grant["capabilities"]),
+                    grant_max_file_exports=grant["max_file_exports"],
+                    side_effect_inventory=effects)
                 self.store.save_task(task)
             if resuming:
                 return self._task_reply(self.runtime.resume(a["task_id"], a["plan_digest"], confirmed))

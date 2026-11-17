@@ -314,8 +314,8 @@ def compute(verb, p, datasets):
         boundary = shapely.union_all(geometries(other))
         operation = "intersection" if verb == "gis_clip" else p["operation"]
         require(operation in ("intersection", "difference"), "NOT_SUPPORTED", "本地叠加仅支持 intersection / difference，保留输入侧属性")
-        fs = []
-        for f, geom in zip(gj["features"], geometries(d)):
+        fs, provenance = [], []
+        for index, (f, geom) in enumerate(zip(gj["features"], geometries(d))):
             result = getattr(geom, operation)(boundary)
             # Touching boundaries can yield lower-dimensional geometries. Keep only
             # polygonal components, as explicitly declared by this local route.
@@ -323,8 +323,13 @@ def compute(verb, p, datasets):
                 result = shapely.union_all([g for g in result.geoms if g.geom_type in ("Polygon", "MultiPolygon")])
             if not result.is_empty and result.geom_type in ("Polygon", "MultiPolygon"):
                 fs.append(feature(multipolygon(result), f["properties"]))
+                # RT-02: stable source-record identity, not attribute matching.
+                # Duplicate attribute values must not alias different records.
+                provenance.append({"source_index": index, "source_record_id": f.get("id"),
+                                   "source_geometry_ref": index})
         gj = collection(fs)
         extra["polygon_only"] = True
+        extra["row_provenance"] = provenance
     elif verb == "gis_dissolve":
         projected(d)
         polygonal(d)
