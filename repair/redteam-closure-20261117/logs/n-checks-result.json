@@ -1,0 +1,43 @@
+{
+  "N-01": {
+    "committed_output": "ds_ce00e9ace1f34bd0",
+    "tables": [
+      "datasets",
+      "tasks",
+      "evidence",
+      "dataset_heads",
+      "local_preflights",
+      "file_artifacts",
+      "external_side_effect_phases",
+      "head_migration_v1",
+      "agent_grants",
+      "agent_grant_events",
+      "sqlite_sequence",
+      "agent_requests"
+    ],
+    "deleted_row": [
+      "datasets",
+      1
+    ],
+    "task_get_plain": {
+      "ok": false,
+      "error": "NOT_FOUND"
+    },
+    "task_get_verify": {
+      "ok": false,
+      "error": "NOT_FOUND",
+      "verification_ok": null,
+      "verification_status": null
+    }
+  },
+  "N-02": {
+    "probe_error": "Traceback (most recent call last):\n  File \"C:\\Users\\RAHUYU\\repair-verify-20261117\\n_checks.py\", line 86, in <module>\n    gid = g[\"data\"][\"authorization\"][\"id\"]\n          ~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'authorization'\n"
+  },
+  "N-03": {
+    "grant_ok": false,
+    "capabilities": null,
+    "effect_capabilities": null,
+    "max_file_exports": null,
+    "error": "INVALID_ARGUMENT"
+  }
+}

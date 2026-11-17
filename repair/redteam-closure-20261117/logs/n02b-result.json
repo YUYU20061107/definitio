@@ -1,0 +1,13 @@
+{
+  "grant_created": true,
+  "grant_capabilities": [
+    "dataset",
+    "file_export"
+  ],
+  "grant_max_file_exports": 1,
+  "execute_ok": false,
+  "execute_error": "AUTHORIZATION_SCOPE",
+  "files_created": [],
+  "task_state": "DECLARED",
+  "actual_writes": []
+}
