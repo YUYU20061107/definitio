@@ -1,47 +1,109 @@
-# Definitio Agent GIS · 当前工作站
+# Definitio
 
-项目已从同日交付目录迁入 `D:/agent-native-gis`。当前使用独立工作区 `data/`，引擎仅监听 `127.0.0.1:8876`。原目录和原始包保持不变；原包、基线清单及随包历史证据保留。
+**An agent-native GIS runtime** — a semantic contract over MCP, spatial-semantics
+verification before execution, and an auditable receipt for every action.
 
-## 开始使用
+Status: **pre-certification (NOT_CERTIFIED)** · Version 0.2.0-dev · Interface `definitio-agent-v1`
 
-本机已配置 `.venv` 并复用现有 Python 3.12 依赖。双击 `启动Agent引擎.cmd`，或运行：
+## Why
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ./launch.ps1 -Headless -NoBrowser
+Most "AI + GIS" work bolts a language model onto a desktop GIS and lets it drive
+the GUI or a vendor API. Definitio takes the opposite route: the runtime is
+designed for agents first. GIS operations are declared as verbs with explicit
+schemas; multi-step work is planned and dry-run before anything is written;
+results are verified against spatial-semantic predicates — not just internal
+consistency — and every committed action returns a receipt bound to the
+persisted artifact it produced.
+
+## The three pillars
+
+1. **Semantic contract over MCP.** 40 GIS verbs are declared in
+   [`definitio/catalog.json`](definitio/catalog.json) and served over MCP
+   (a compact router profile by default; `--tool-profile full` exposes all 60
+   tools — the 40 verbs plus management tools). The same implementation is
+   available over HTTP (`GET /api/agent/manifest`, `POST /api/agent/call`).
+   See [AGENT.md](AGENT.md) for the agent-facing operating guide.
+2. **Verification before execution.** A plan can be dry-run in memory with the
+   same code that will execute it, reporting per-step effects before any write.
+   At execution time, input fingerprints are re-checked and results must pass
+   spatial-semantic verification (containment, provenance, multiplicity,
+   exact-encoding checks) before they are committed.
+3. **A receipt for every action.** Each committed task returns an immutable
+   receipt. Replays and re-verification re-read the live artifact — bytes,
+   size, SHA-256, content binding — instead of trusting history, and report
+   `TARGET_STATE_UNKNOWN` when current state cannot be confirmed.
+
+## Repository layout
+
+| Path | What it is |
+| --- | --- |
+| `definitio/` | The engine package: runtime, MCP server, HTTP server, planner, verifier, authorization, store |
+| `run_engine.py`, `run_mcp.py` | Entry points for the engine and the MCP adapter |
+| `scripts/` | Self-checks, environment doctor, audits, and workers for optional native backends |
+| `tests/` | The pytest suite |
+| `examples/` | Sample data (GeoJSON, LAS) |
+| `docs/` | Handbook, contract addendum, clean-install guide, and the [red-team record](docs/red-team-review-2026-11.md) |
+| `AGENT.md` | Operating guide written for agents connecting to the runtime |
+
+## Quick start
+
+Requirements: **Python 3.12** (developed and verified on 3.12.9). The core
+needs no system GDAL/QGIS/PDAL installation — the wheels carry GEOS/PROJ/GDAL.
+
+```bash
+python -m venv .venv
+.venv/Scripts/python -m pip install -r requirements.txt   # Windows
+# .venv/bin/python -m pip install -r requirements.txt     # POSIX
+
+# Self-checks (in-process; binds no port)
+python -X utf8 scripts/clean_install_selftest.py --out evidence/clean-install-selftest.json
+python -X utf8 scripts/environment_doctor.py --profile core
+
+# Run the engine, then the MCP adapter (which can also autostart an engine)
+python run_engine.py --port 8765 --data-dir ./data
+python run_mcp.py --engine-url http://127.0.0.1:8765 --data-dir ./data
 ```
 
-MCP 宿主导入根目录 `mcp.local.json`，入口、解释器和数据路径均已迁至本目录；移动到其他路径后须相应修改绝对路径。也可以显式运行：
+Then point your MCP client at `run_mcp.py`. For the full from-scratch
+procedure, see [docs/CLEAN-INSTALL.md](docs/CLEAN-INSTALL.md).
 
-```powershell
-./.venv/Scripts/python.exe run_mcp.py --engine-url http://127.0.0.1:8876 --data-dir ./data
+Tests (use `python -m pytest`, not bare `pytest`):
+
+```bash
+python -m pytest tests/ -q
 ```
 
-[Agent用法](AGENT.md) · [当前交付与验证](docs/WORKSTATION-DELIVERY-20261113.md) · [任务逐项状态](docs/NEXT-PLAN-STATUS-20261113.md) · [摩擦登记册](docs/FRICTION-REGISTER.md)
+Each verb declares its dependency tier. The core verbs run on the
+pip-installable stack alone; extended verbs light up when native backends
+(QGIS, ArcPy, PDAL, PostGIS, GeoServer, SensorThings) are present. A subset of
+tests targets those optional backends and reports them unavailable — without
+issuing network calls — on a core-only machine.
 
-## 安装与环境检查
+## Status
 
-```powershell
-# 新环境安装核心依赖；需要索引能取得锁定版本
-powershell -NoProfile -ExecutionPolicy Bypass -File ./setup.ps1
-# 本机已有相同依赖时，显式选择复用
-powershell -NoProfile -ExecutionPolicy Bypass -File ./setup.ps1 -ReuseInstalled
-# 仅检查，不安装或启动外部后端
-./.venv/Scripts/python.exe scripts/environment_doctor.py --profile core
-./.venv/Scripts/python.exe scripts/environment_doctor.py --profile full
-```
+- **Certification: NOT_CERTIFIED.** No conformance or certification gate has
+  been issued for this runtime. "Pre-certification" above means exactly that.
+- **Red-team record.** An independent red-team review on 2026-11-16 returned
+  NO_GO with 11 issue groups and 13 reproducible counterexamples. All 13 were
+  fixed, and an independent acceptance on 2026-11-17 re-verified the fix
+  (0/13 reproduce) with limitations recorded in
+  [docs/red-team-review-2026-11.md](docs/red-team-review-2026-11.md).
+  That acceptance covers the fix — it is not a certification.
+- **Known limits.** A clean-machine install needs a package index that serves
+  the pinned versions in `requirements.txt`; heavy GIS backends are not
+  bundled.
 
-核心层包含30个无需重型GIS后端的动词；另10个动词需要ArcPy/QGIS/PDAL或服务后端。精确依赖由能力说明的 dependency_tier/dependencies 返回。`implemented` 表示已有实现，不表示本机所有后端都已就绪。
+## License
 
-本机核心调用通过。QGIS 3.44.15、ArcPy 10.8、PDAL 2.10.0及Wrench探活通过；PostGIS/GeoServer/SensorThings尚未在新工作区配置。核心包使用GEOS/GDAL依赖wheel，不包含重型GIS软件、许可证、后端集群、密码或旧私人工作区。完整源码包同样不打包这些第三方后端。
+Dual-licensed:
 
-干净venv从当前镜像安装锁定版本失败，离线缓存也不完整；本轮成功使用的是明确复用已有依赖的环境。不能据此声称干净机器安装通过。失败记录见 evidence/workstation-core-install.log。
+- **Code:** Apache License 2.0 — see [LICENSE](LICENSE).
+- **Documentation and specification:** CC BY 4.0 — see
+  [LICENSE-CC-BY-4.0](LICENSE-CC-BY-4.0).
 
-## 已验证与历史边界
+Copyright 2026 Huangyu Rao.
 
-本轮定向回归120 PASS，含官方MCP SDK完整流程及合成非空STA的真实HTTP往返。已有依赖下新进程就绪2.06秒，首次MCP调用完成4.51秒；不包含解压/安装耗时，不是真实模型评测。
+## Contact
 
-A1错误自解释、A2摩擦日志、A4预演输入来源已落实。A3真实模型评测、Muse独立复验、最终同源800条矩阵、G1裁决和公开发布均未完成；认证保持NOT_CERTIFIED。
-
-历史40/40、201个测试ID、800条合成矩阵的原始限定见 [迁入README](docs/README-IMPORTED-20261113.md) 和 ROUND4-DELIVERY.md；这些是原环境记录。6条严格栅格红灯、真实非空STA验证和GeoServer目录回写仍保留原状态。
-
-根目录 SOURCE-MANIFEST.json 是迁入基线，不是修改后源码清单。当前交付清单为 WORKSTATION-MANIFEST.json；每个新ZIP内部也带独立源码清单与校验回执。全程未公开发布或推送。
+Maintained by [@YUYU20061107](https://github.com/YUYU20061107). Please use
+this repository's issue tracker for questions and reports.
