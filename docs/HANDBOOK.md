@@ -1,6 +1,6 @@
 # Definitio 使用手册（自动生成，勿手改）
 
-格式：`definitio-handbook-v1`　来源摘要：`5a305bb91d1a66e450477e4adaed9ddc473a31c33e74af5c96e046aa02cfe62d`
+格式：`definitio-handbook-v1`　来源摘要：`6e51c8dc3db13953461dd8dff5a6dd832994eab94305fa33e1d18b05d3a740bd`
 
 > 本文件由 `scripts/generate_handbook.py` 从活目录生成。动词、错误码、规则、disposition 口径变动后必须重新生成，否则 `tests/test_v05_handbook.py` 的漂移测试会失败。
 
@@ -40,7 +40,7 @@ committed outputs. FAILED/ISOLATED receipts are inspected before creating a new 
 - tools: **60**
 - specs: **40**
 - error_codes: **23**
-- rules: **8**
+- rules: **9**
 - dispositions: **3**
 
 ## 3. 动词（40）
@@ -137,6 +137,7 @@ committed outputs. FAILED/ISOLATED receipts are inspected before creating a new 
 | 规则 | 位置 | 含义 | 修复 |
 |---|---|---|---|
 | `commit_verification` | task commit, after real readback | Actual writes left the declared scope or a binding changed | Inspect details.out_of_scope; nothing outside the plan may be written |
+| `committed_receipt_is_not_current_state` | task_get and committed-task replay, when a committed output can no longer be read back | A committed receipt is history; it does not prove the output still exists in its committed state | Inspect task_get unavailable_outputs / live_status and the evidence; restore the output or re-plan, never trust the old receipt |
 | `operation_parameters_only` | task_plan / task_dry_run step parameters | Step parameters carry operation arguments only | Put request_id on task_plan and authorization_id on task_execute |
 | `previous_dataset_output` | task_plan / task_dry_run step references | $previous references the immediately preceding dataset output | Use an existing handle for the first step; never a planned new target name |
 | `published_surface_names` | MCP surface adapter | Only names published by the selected surface profile are accepted | Use the canonical name or the exact published surface name |
