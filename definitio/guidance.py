@@ -64,6 +64,9 @@ RULES = {
     "commit_verification": {"where": "task commit, after real readback",
                             "meaning": "Actual writes left the declared scope or a binding changed",
                             "fix": "Inspect details.out_of_scope; nothing outside the plan may be written"},
+    "committed_receipt_is_not_current_state": {"where": "task_get and committed-task replay, when a committed output can no longer be read back",
+                                               "meaning": "A committed receipt is history; it does not prove the output still exists in its committed state",
+                                               "fix": "Inspect task_get unavailable_outputs / live_status and the evidence; restore the output or re-plan, never trust the old receipt"},
 }
 
 

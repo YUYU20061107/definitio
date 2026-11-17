@@ -106,10 +106,12 @@ def control_definitions():
                          obj({"uri": text("Immutable definitio:// URI", maxLength=512), "pointer": {"type": "string", "maxLength": 1024, "default": ""},
                               "cursor": text("Opaque continuation from prior artifact_view", maxLength=4096),
                               "limit": PAGE["limit"], "view": choice(["summary", "page"], "Default summary; page reads values")}, ["uri"]), True),
-        "authorization_grant": ("After host/user approval, grant this session bounded writes to new names under a prefix, specific verbs, count and TTL. confirm=true is required once; never a global bypass.",
+        "authorization_grant": ("After host/user approval, grant this session bounded writes to new names under a prefix, specific verbs, count and TTL. confirm=true is required once; never a global bypass. capabilities bounds the side-effect classes covered (default dataset only); file exports additionally need max_file_exports > 0 and are still refused before any write beyond that cap.",
                                 obj({"target_prefix": text("Literal nonempty NEW dataset name prefix", maxLength=64),
                                      "verbs": {"type": "array", "items": choice(["dataset_import", "raster_import"] + [v for v, s in SPECS.items() if s[2] != "R0"], "Allowed write verb"), "minItems": 1, "uniqueItems": True},
                                      "max_writes": {"type": "integer", "minimum": 1, "maximum": 100},
+                                     "capabilities": {"type": "array", "items": choice(["dataset", "file_export", "logical_head", "external_publish"], "Granted side-effect class (mirrors authorization.EFFECT_KINDS)"), "minItems": 1, "uniqueItems": True},
+                                     "max_file_exports": {"type": "integer", "minimum": 0, "maximum": 100, "description": "Explicit cap on published file artifacts under this grant; default 0 forbids file exports"},
                                      "ttl_seconds": {"type": "integer", "minimum": 1, "maximum": 3600},
                                      "confirm": {"type": "boolean"}, "request_id": REQUEST_ID},
                                     ["target_prefix", "verbs", "max_writes", "ttl_seconds", "request_id"]), False),
@@ -317,9 +319,24 @@ class AgentService:
                           for s in t["steps"]]}
 
     def _task_reply(self, task, replayed=False):
+        # X-01: a committed output dataset can be deleted externally. Resolving
+        # every output ref unconditionally used to collapse the whole reply into
+        # a bare NOT_FOUND, hiding the task state itself (and pre-empting the
+        # verify path, which runs after this). Account per ref instead, exactly
+        # like commit.live_readback: present outputs are described, missing ones
+        # are named in unavailable_outputs, and the reply then fails as
+        # TARGET_STATE_UNKNOWN -- a committed receipt is history, never proof
+        # that the output still exists. The task state stays visible either way.
+        outputs, unavailable = [], []
+        for ref in task["output_refs"]:
+            try:
+                described = self.descriptor(self.store.dataset(ref))
+            except GISFault as fault:
+                unavailable.append({"ref": ref, "error": fault.payload()})
+                continue
+            outputs.append({k: described[k] for k in ("id", "name", "fingerprint", "feature_count", "crs", "resource_uri", "metadata_uri", "geojson_uri", "raster_uri", "pointcloud_uri", "export_uri", "point_count", "kind", "grid") if k in described})
         data = {"task": self.task_summary(task), "replayed": replayed,
-                "outputs": [{k: d[k] for k in ("id", "name", "fingerprint", "feature_count", "crs", "resource_uri", "metadata_uri", "geojson_uri", "raster_uri", "pointcloud_uri", "export_uri", "point_count", "kind", "grid") if k in d}
-                            for d in (self.descriptor(self.store.dataset(ref)) for ref in task["output_refs"])],
+                "outputs": outputs, "unavailable_outputs": unavailable,
                 "results": []}
         for step in task["steps"]:
             if step.get("result") is not None:
@@ -337,6 +354,12 @@ class AgentService:
         if task["task_state"] in ("FAILED", "ISOLATED"):
             error = task["error"]
             return failure(GISFault(error["code"], error["message"], **error.get("details", {})), data)
+        if unavailable:
+            # X-01: never let a stale receipt masquerade as a live success.
+            return failure(GISFault("TARGET_STATE_UNKNOWN",
+                                    "已提交成果当前不可读；旧回执不能证明当前状态",
+                                    rule="committed_receipt_is_not_current_state",
+                                    unavailable=unavailable), data)
         return success(data, [{"tool": "task_get", "arguments": {"task_id": task["id"]}, "reason": "Persistent status and output handles"}])
 
     @staticmethod

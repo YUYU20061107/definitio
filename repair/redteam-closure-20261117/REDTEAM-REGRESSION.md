@@ -43,3 +43,62 @@
 - RT-07 相位故障注入：未独立复跑。修复方记录 19/19 在案。
 - 相同输入重复执行/状态泄漏：包含在全量套件既有用例内（通过），未另行构造专项。
 - 保留反例过拟合检查：本轮探针即红队原件，未参与任何调参；08 树代码本轮未改，不存在为本轮结果调参的可能。
+
+
+---
+
+# 增补（2026-11-17 晚，修复轮真实运行结果）
+
+- 代码：同分支，含 X-01 / X-02 修复（`definitio/agent.py`、`definitio/guidance.py`、`definitio/surfaces/surface-v1.json`），引擎摘要 `7b767759…`。
+- 原则不变：只记本轮实际运行；失败如实记；未改弱任何断言。
+
+## A1. 历史 13 反例（修复后复跑）
+
+- 同一运行器（`logs/runner_dprobes.py`），探针从 **D 盘原件重新复制**到隔离目录 `C:\Users\RAHUYU\xfix-verify-20261117\` 并校验 SHA-256 `56ffb951…`。
+- 结果：**DEFECTS_STILL_REPRODUCING 0 / 13，case 异常 0**。结果文件 `logs/xfix-dprobes-result-20261117.json`。
+
+## A2. X-01 / X-02 专项回归（`tests/test_repair_x01_x02.py`，新文件）
+
+**8 passed。** 其中一条如实记录：X-01 的 verify 路断言按 08 既有语义落账——输出数据集缺失时该步无法重判被 skip，verify 状态为 `incomplete`，同时 `live_status.state=corrupted`、`datasets[0].state=missing_or_corrupt`、`ok=false`。这与 D 侧「output_state_binding finding + failed 状态」形态不同、事实层一致（两边都不报已验证）。作者首版测试曾误断言 `corrupted` 状态标签，实测后按 08 真实语义改正并在此留痕，非放宽：核心断言（ok=false、live_status 标缺失、回复 TARGET_STATE_UNKNOWN）全部保留且通过。
+
+## A3. D 侧 47 项回归移植（`tests/test_repair_redteam.py`）逐项结论
+
+移植方式：逐字移植 + 唯一夹具适配（`grant()` 将 file_export 由 verb 译为 capabilities/max_file_exports，文件头 PORTING NOTE 已声明）。结果：**28 passed / 19 failed / 0 skipped**，原始日志 `logs/ported47-detail-20261117.log`。
+
+通过的 28 项包括全部合法正例（buffer 几何族 3 参数化、MultiPoint buffer、clip 重复属性、join 一对多/左外空值、overlay 交集/差集正例、hillshade 背光、空 reproject、空 clip、无效几何拒绝、栅格 NoData、轴顺序记录、规划后变更/占用/摘要拒绝）与关键负例（授权前缀越界、撤销后不可执行、产物名穿越 3 参数化、发布副作用后隔离 ISOLATED）。
+
+19 项失败逐项归因（均为两树实现差异；无一项显示 08 存在「错误结果被认证」或「越权写入已发生」的路径）：
+
+| # | 用例 | 08 实际结果 | 初步归因 |
+|---|---|---|---|
+| 1 | test_buffer_rejects_a_result_at_the_wrong_position | 任务 FAILED，check=`buffer_positive_containment` | 谓词命名差异（D 名单为 buffer_offset_distance 等）；拒绝成立 |
+| 2 | test_buffer_rejects_an_unbuffered_identity_result | FAILED，check=`buffer_positive_expansion` | 同上 |
+| 3 | test_buffer_rejects_a_wrong_distance_multiple | FAILED，check=`buffer_same_kernel_recompute` | 同上 |
+| 4 | test_clip_rejects_a_result_outside_the_mask | FAILED，check=`clip_completeness` | 同上（D 名单 clip_geometry_index_aligned 等） |
+| 5 | test_clip_rejects_a_result_that_lost_area | FAILED，check=`clip_completeness` | 同上 |
+| 6 | test_overlay_difference_that_keeps_the_subtracted_region_is_rejected | FAILED，check=`clip_completeness` | 同上 |
+| 7 | test_join_rejects_a_wrong_joined_attribute | FAILED，check=`join_right_attributes_binding` | 同上（D 名 join_record_correspondence） |
+| 8 | test_join_rejects_a_swapped_right_record | FAILED，check=`join_right_attributes_binding` | 同上 |
+| 9 | test_the_reservation_counts_the_file_write_too | max_writes=1 + max_file_exports=1 下执行成功 | 授权计数模型差异：D 为数据集与文件共用同一预留计数；08 为分类别独立上限，各自不超限即放行。08 的超上限拒绝已由上轮 n02b 与本轮 X-02 专项证明（写前拒绝、零落盘），非检查缺失 |
+| 10 | test_replay_reports_a_missing_file_instead_of_the_old_receipt | 抛 TARGET_STATE_UNKNOWN，但 08 文案为「已提交任务的承诺产物实时读回未确认…」 | 错误文案差异；代码与行为一致 |
+| 11 | test_verify_reports_a_missing_file_as_not_ok | verify `ok=false` 成立；08 无 `artifact_state_binding` 逐项 finding，事实由 live_status 承载 | verify 报告契约差异 |
+| 12 | test_verify_reports_a_deleted_output_dataset_as_not_ok | verify `ok=false` 成立；08 无 `output_state_binding` finding，live_status.datasets 标 missing_or_corrupt | 同上 |
+| 13 | test_verify_of_a_failed_task_is_not_ok | status=`incomplete`（D 期望 `task_not_committed`），coverage 键名不同 | 同上 |
+| 14 | test_verify_detects_a_tampered_read_only_result | `ok=false` 成立；08 的 finding 名为 `persisted_result_binding`（D 名 readonly_result_binding） | 同上（含命名） |
+| 15 | test_verify_of_a_committed_task_reports_verified_with_coverage | status=`complete`（D 期望 `verified`），coverage 结构不同（expected/checked/skipped + live_status） | 同上 |
+| 16 | test_publish_transport_failure_before_any_write_is_not_isolated | 任务 **ISOLATED**（D 期望 FAILED） | 发布故障分级差异：08 对 publish 路径的 BACKEND_ERROR 一律隔离（无法证明外部未动作的保守口径）；D 按「写前传输失败」判 FAILED。**留 Muse 裁决** |
+| 17 | test_a_publication_that_vanishes_is_rolled_back_and_can_be_retried | task FAILED 成立；回滚后 `file_artifacts()` 仍保留登记记录（D 期望清空登记并以 events 表记 rolled_back；08 无 file_artifact_events API） | RT-07 记账模型差异：08 保留登记作状态记录 |
+| 18 | test_a_corrupted_publication_is_not_silently_rolled_back | FAILED + TARGET_STATE_UNKNOWN + 登记保留 1 条均成立；但 08 删除了字节不一致的已发布文件（D 期望保留坏字节作证据） | 证据保留策略差异。**留 Muse 裁决** |
+| 19 | test_file_artifact_confinement_rejects_escapes_by_resolved_path | AttributeError：08 verifier 无 `file_artifact_confinement` 函数 | 实现形态差异：08 的文件产物禁锢在 commit.readback / artifact_paths 与计划期名称校验一侧（名称穿越用例在 08 通过），无同名谓词可调 |
+
+## A4. 全量套件（修复后整包复跑）
+
+命令：`python -m pytest tests/ -q`（树根，无过滤）。
+
+- **34 failed, 410 passed, 3 warnings in 216.31s（444 项）**
+- 原始日志 `logs/full-suite-xfix-20261117.log`（SHA-256 `368f9683fa23ef0c526e54eb92a48c09cb06f837a227aa1d1dce39d400cdb4d1`）。
+- 与基线对照：上一轮（修复前）同口径为 403 passed / 0 failed。本轮集合变化 = +8（X 专项）+47（移植）+ 既有 389 = 444 项；19 项失败全部来自移植文件且已逐项归因（A3），既有套件与新增专项无失败。
+
+## A5. 本轮仍未跑（如实留账）
+
+变异集独立复跑、RT-07 崩溃窗口故障注入、授权撤销竞态：状态与上文 §5 相同，仍未独立复跑（C4 未全关）。移植文件中与发布故障注入相关的用例（A3 第 16–18 项）是 D 侧口径的注入实测，可作 C4 的部分参考，但不冒充 08 口径的 RT-07 注入复验。

@@ -1,0 +1,644 @@
+﻿........................................................................ [ 16%]
+..............................................F......................... [ 32%]
+..................................FFF......FF...FFF.....F....FFFFFF.FFF. [ 48%]
+........F............................................................... [ 64%]
+........................................................................ [ 81%]
+.............................................F...F................F.F.F. [ 97%]
+............                                                             [100%]
+================================== FAILURES ===================================
+________________ test_cold_start_survives_mcp_host_disconnect _________________
+  + Exception Group Traceback (most recent call last):
+  |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_mcp.py", line 180, in test_cold_start_survives_mcp_host_disconnect
+  |     asyncio.run(connect())
+  |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 195, in run
+  |     return runner.run(main)
+  |            ^^^^^^^^^^^^^^^^
+  |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+  |     return self._loop.run_until_complete(task)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+  |     return future.result()
+  |            ^^^^^^^^^^^^^^^
+  |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_mcp.py", line 175, in connect
+  |     async with stdio_client(params) as (read, write):
+  |                ^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\site-packages\mcp\client\stdio\__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 811, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\site-packages\mcp\client\stdio\__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_mcp.py", line 176, in connect
+    |     async with ClientSession(read, write) as session:
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\site-packages\mcp\shared\session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 811, in __aexit__
+    |     raise BaseExceptionGroup(
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_mcp.py", line 177, in connect
+      |     await session.initialize()
+      |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\site-packages\mcp\client\session.py", line 183, in initialize
+      |     result = await self.send_request(
+      |              ^^^^^^^^^^^^^^^^^^^^^^^^
+      |   File "C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\site-packages\mcp\shared\session.py", line 306, in send_request
+      |     raise McpError(response_or_error.error)
+      | mcp.shared.exceptions.McpError: Connection closed
+      +------------------------------------
+---------------------------- Captured stderr call -----------------------------
+Definitio MCP startup failed: Independent GIS engine startup timed out; inspect engine.stderr.log in the configured data directory
+
+_____________ test_buffer_rejects_a_result_at_the_wrong_position ______________
+
+rt = <definitio.runtime.Runtime object at 0x00000171134AB1A0>
+
+    def test_buffer_rejects_a_result_at_the_wrong_position(rt):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = run_corrupted(rt, "gis_buffer",
+                             {"input": d["id"], "target": "buf", "distance": 10, "unit": "m", "dissolve": False},
+                             set_geometry())
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) in ("buffer_offset_distance", "buffer_same_kernel_equivalence",
+                                      "buffer_contains_source", "buffer_area_upper_bound")
+E       AssertionError: assert 'buffer_positive_containment' in ('buffer_offset_distance', 'buffer_same_kernel_equivalence', 'buffer_contains_source', 'buffer_area_upper_bound')
+E        +  where 'buffer_positive_containment' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T14:47:11.249204+00:00', ...})
+
+tests\test_repair_redteam.py:98: AssertionError
+______________ test_buffer_rejects_an_unbuffered_identity_result ______________
+
+rt = <definitio.runtime.Runtime object at 0x0000017114860CB0>
+
+    def test_buffer_rejects_an_unbuffered_identity_result(rt):
+        d = import_fc(rt, "src2", [feature(box(100, 100, 110, 110))])
+        task = run_corrupted(rt, "gis_buffer",
+                             {"input": d["id"], "target": "buf2", "distance": 10, "unit": "m", "dissolve": False},
+                             lambda p: p["geojson"]["features"][0].__setitem__(
+                                 "geometry", mapping(box(100, 100, 110, 110))))
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) in ("buffer_offset_distance", "buffer_same_kernel_equivalence",
+                                      "buffer_contains_source")
+E       AssertionError: assert 'buffer_positive_expansion' in ('buffer_offset_distance', 'buffer_same_kernel_equivalence', 'buffer_contains_source')
+E        +  where 'buffer_positive_expansion' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T14:47:14.519159+00:00', ...})
+
+tests\test_repair_redteam.py:110: AssertionError
+________________ test_buffer_rejects_a_wrong_distance_multiple ________________
+
+rt = <definitio.runtime.Runtime object at 0x0000017114861E20>
+
+    def test_buffer_rejects_a_wrong_distance_multiple(rt):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = run_corrupted(rt, "gis_buffer",
+                             {"input": d["id"], "target": "buf", "distance": 10, "unit": "m", "dissolve": False},
+                             lambda p: p["geojson"]["features"][0].__setitem__(
+                                 "geometry", mapping(box(-10, -10, 20, 20))))
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) in ("buffer_area_upper_bound", "buffer_offset_distance",
+                                      "buffer_same_kernel_equivalence")
+E       AssertionError: assert 'buffer_same_kernel_recompute' in ('buffer_area_upper_bound', 'buffer_offset_distance', 'buffer_same_kernel_equivalence')
+E        +  where 'buffer_same_kernel_recompute' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T14:47:14.910049+00:00', ...})
+
+tests\test_repair_redteam.py:121: AssertionError
+_________________ test_clip_rejects_a_result_outside_the_mask _________________
+
+rt = <definitio.runtime.Runtime object at 0x00000171135DADE0>
+
+    def test_clip_rejects_a_result_outside_the_mask(rt):
+        d, mask = clip_setup(rt)
+        task = run_corrupted(rt, "gis_clip",
+                             {"input": d["id"], "clip_by": mask["id"], "target": "clipped"},
+                             lambda p: p["geojson"]["features"][0].__setitem__(
+                                 "geometry", mapping(box(8, 0, 10, 10))))
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) in ("clip_geometry_index_aligned", "clip_output_within_mask",
+                                      "subset_within_input")
+E       AssertionError: assert 'clip_completeness' in ('clip_geometry_index_aligned', 'clip_output_within_mask', 'subset_within_input')
+E        +  where 'clip_completeness' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T14:47:17.525479+00:00', ...})
+
+tests\test_repair_redteam.py:185: AssertionError
+__________________ test_clip_rejects_a_result_that_lost_area __________________
+
+rt = <definitio.runtime.Runtime object at 0x000001711371BC80>
+
+    def test_clip_rejects_a_result_that_lost_area(rt):
+        d, mask = clip_setup(rt)
+        task = run_corrupted(rt, "gis_clip",
+                             {"input": d["id"], "clip_by": mask["id"], "target": "clipped"},
+                             lambda p: p["geojson"]["features"][0].__setitem__(
+                                 "geometry", mapping(box(0, 0, 0.5, 2))))
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) == "clip_geometry_index_aligned"
+E       AssertionError: assert 'clip_completeness' == 'clip_geometry_index_aligned'
+E         
+E         - clip_geometry_index_aligned
+E         + clip_completeness
+
+tests\test_repair_redteam.py:196: AssertionError
+____ test_overlay_difference_that_keeps_the_subtracted_region_is_rejected _____
+
+rt = <definitio.runtime.Runtime object at 0x00000171133E2990>
+
+    def test_overlay_difference_that_keeps_the_subtracted_region_is_rejected(rt):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        other = import_fc(rt, "other", [feature(box(0, 0, 5, 10), value=7)])
+        task = run_corrupted(rt, "gis_overlay",
+                             {"input": d["id"], "overlay": other["id"], "target": "ov",
+                              "operation": "difference"},
+                             lambda p: p["geojson"]["features"][0].__setitem__(
+                                 "geometry", mapping(box(0, 0, 5, 10))))
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) in ("clip_output_outside_subtracted_mask", "clip_geometry_index_aligned")
+E       AssertionError: assert 'clip_completeness' in ('clip_output_outside_subtracted_mask', 'clip_geometry_index_aligned')
+E        +  where 'clip_completeness' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T14:47:19.690493+00:00', ...})
+
+tests\test_repair_redteam.py:232: AssertionError
+_________________ test_join_rejects_a_wrong_joined_attribute __________________
+
+rt = <definitio.runtime.Runtime object at 0x00000171147BB440>
+
+    def test_join_rejects_a_wrong_joined_attribute(rt):
+        left, right = join_setup(rt)
+        def mutate(proposal):
+            proposal["geojson"]["features"][0]["properties"]["zone"] = "WRONG_ZONE"
+        task = run_corrupted(rt, "gis_spatial_join",
+                             {"input": left["id"], "join": right["id"], "target": "joined",
+                              "predicate": "intersects", "summary": "first"}, mutate)
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) == "join_record_correspondence"
+E       AssertionError: assert 'join_right_a...butes_binding' == 'join_record_correspondence'
+E         
+E         - join_record_correspondence
+E         + join_right_attributes_binding
+
+tests\test_repair_redteam.py:253: AssertionError
+__________________ test_join_rejects_a_swapped_right_record ___________________
+
+rt = <definitio.runtime.Runtime object at 0x0000017113719850>
+
+    def test_join_rejects_a_swapped_right_record(rt):
+        left = import_fc(rt, "left", [feature(box(0, 0, 10, 10), value=7)])
+        right = import_fc(rt, "zones", [feature(box(5, 5, 15, 15), zone="A"),
+                                        feature(box(6, 6, 16, 16), zone="B")])
+        def mutate(proposal):
+            proposal["geojson"]["features"][0]["properties"]["zone"] = "B"
+        task = run_corrupted(rt, "gis_spatial_join",
+                             {"input": left["id"], "join": right["id"], "target": "joined",
+                              "predicate": "intersects", "summary": "all"}, mutate)
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) == "join_record_correspondence"
+E       AssertionError: assert 'join_right_a...butes_binding' == 'join_record_correspondence'
+E         
+E         - join_record_correspondence
+E         + join_right_attributes_binding
+
+tests\test_repair_redteam.py:266: AssertionError
+_______________ test_the_reservation_counts_the_file_write_too ________________
+
+rt = <definitio.runtime.Runtime object at 0x000001715DD3B110>
+service = <definitio.agent.AgentService object at 0x00000171147B9B80>
+
+    def test_the_reservation_counts_the_file_write_too(rt, service):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = rt.declare("counting", [{"verb": "gis_buffer", "parameters": {
+            "input": d["id"], "target": "safe_buf", "distance": 10, "unit": "m", "dissolve": False}}],
+            exports=[{"step": 1, "name": "safe_buf.geojson", "format": "geojson"}])
+        grant_id = grant(service, ["gis_buffer", "file_export"], maximum=1)
+        reply = service.call("task_execute", {"task_id": task["id"], "plan_digest": task["plan_digest"],
+                                              "authorization_id": grant_id}, session=SESSION)
+>       assert reply["ok"] is False and reply["error"]["code"] == "AUTHORIZATION_EXHAUSTED"
+E       assert (True is False)
+
+tests\test_repair_redteam.py:357: AssertionError
+________ test_replay_reports_a_missing_file_instead_of_the_old_receipt ________
+
+rt = <definitio.runtime.Runtime object at 0x0000017114861CD0>
+
+    def test_replay_reports_a_missing_file_instead_of_the_old_receipt(rt):
+        task = export_task(rt)
+        assert task["task_state"] == "COMMITTED"
+        (rt.store.path.parent / "artifacts" / "buf.geojson").unlink()
+        with pytest.raises(Exception) as caught:
+            rt.execute(task["id"], task["plan_digest"], True)
+        assert getattr(caught.value, "code", "") == "TARGET_STATE_UNKNOWN"
+>       assert "���ύ�ļ�����ĵ�ǰ״̬" in str(caught.value)
+E       AssertionError: assert '���ύ�ļ�����ĵ�ǰ״̬' in '���ύ����ĳ�ŵ����ʵʱ����δȷ�ϣ���ֹ����ʷ��ִ���ʵʱ״̬��Ҳ�����·���'
+E        +  where '���ύ����ĳ�ŵ����ʵʱ����δȷ�ϣ���ֹ����ʷ��ִ���ʵʱ״̬��Ҳ�����·���' = str(GISFault('���ύ����ĳ�ŵ����ʵʱ����δȷ�ϣ���ֹ����ʷ��ִ���ʵʱ״̬��Ҳ�����·���'))
+E        +    where GISFault('���ύ����ĳ�ŵ����ʵʱ����δȷ�ϣ���ֹ����ʷ��ִ���ʵʱ״̬��Ҳ�����·���') = <ExceptionInfo GISFault('���ύ����ĳ�ŵ����ʵʱ����δȷ�ϣ���ֹ����ʷ��ִ���ʵʱ״̬��Ҳ�����·���') tblen=3>.value
+
+tests\test_repair_redteam.py:401: AssertionError
+________________ test_verify_reports_a_missing_file_as_not_ok _________________
+
+service = <definitio.agent.AgentService object at 0x00000171135D8C50>
+
+    def test_verify_reports_a_missing_file_as_not_ok(service):
+        task = export_task(service.runtime)
+        (service.runtime.store.path.parent / "artifacts" / "buf.geojson").unlink()
+        reply = service.call("task_get", {"task_id": task["id"], "verify": True})
+        verification = reply["data"]["verification"]
+        assert verification["ok"] is False
+>       assert any(f["predicate"] == "artifact_state_binding" and f["passed"] is False
+                   for step in verification["steps"] for f in step["found"])
+E       assert False
+E        +  where False = any(<generator object test_verify_reports_a_missing_file_as_not_ok.<locals>.<genexpr> at 0x0000017161899000>)
+
+tests\test_repair_redteam.py:410: AssertionError
+___________ test_verify_reports_a_deleted_output_dataset_as_not_ok ____________
+
+service = <definitio.agent.AgentService object at 0x00000171147BBFE0>
+
+    def test_verify_reports_a_deleted_output_dataset_as_not_ok(service):
+        rt = service.runtime
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = run_verb(rt, "gis_buffer",
+                        {"input": d["id"], "target": "buf", "distance": 10, "unit": "m", "dissolve": False})
+        assert task["task_state"] == "COMMITTED"
+        with sqlite3.connect(rt.store.path) as db:
+            db.execute("DELETE FROM datasets WHERE id=?", (task["output_refs"][0],))
+            db.commit()
+        reply = service.call("task_get", {"task_id": task["id"], "verify": True})
+        verification = reply["data"]["verification"]
+        assert verification["ok"] is False
+>       assert any(f["predicate"] == "output_state_binding" and f["passed"] is False
+                   for step in verification["steps"] for f in step["found"])
+E       assert False
+E        +  where False = any(<generator object test_verify_reports_a_deleted_output_dataset_as_not_ok.<locals>.<genexpr> at 0x00000171132EC3C0>)
+
+tests\test_repair_redteam.py:426: AssertionError
+___________________ test_verify_of_a_failed_task_is_not_ok ____________________
+
+rt = <definitio.runtime.Runtime object at 0x00000171136004A0>
+service = <definitio.agent.AgentService object at 0x00000171147E74D0>
+
+    def test_verify_of_a_failed_task_is_not_ok(rt, service):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = rt.declare("boom", [{"verb": "gis_buffer", "parameters": {
+            "input": d["id"], "target": "buf", "distance": 10, "unit": "m", "dissolve": False}}])
+        def explode(name, p, inputs):
+            raise RuntimeError("injected computation failure")
+        with patch.object(runtime_module, "compute", explode):
+            task = rt.execute(task["id"], task["plan_digest"], True)
+        assert task["task_state"] == "FAILED"
+        verification = service.verify_task(task)
+        assert verification["ok"] is False
+>       assert verification["status"] == "task_not_committed"
+E       AssertionError: assert 'incomplete' == 'task_not_committed'
+E         
+E         - task_not_committed
+E         + incomplete
+
+tests\test_repair_redteam.py:445: AssertionError
+_______________ test_verify_detects_a_tampered_read_only_result _______________
+
+rt = <definitio.runtime.Runtime object at 0x00000171147E50A0>
+service = <definitio.agent.AgentService object at 0x00000171147E73E0>
+
+    def test_verify_detects_a_tampered_read_only_result(rt, service):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = run_verb(rt, "gis_field_statistics", {
+            "dataset": d["id"], "fields": ["value"], "group_by": [], "statistics": ["sum"],
+            "output": "result", "null_policy": "exclude"})
+        assert task["task_state"] == "COMMITTED"
+        with sqlite3.connect(rt.store.path) as db:
+            row = db.execute("SELECT document FROM tasks WHERE id=?", (task["id"],)).fetchone()
+            document = json.loads(row[0])
+            document["steps"][0]["result"]["groups"][0]["fields"]["value"]["sum"] = 999999
+            db.execute("UPDATE tasks SET document=? WHERE id=?", (json.dumps(document), task["id"]))
+            db.commit()
+        verification = service.verify_task(rt.store.task(task["id"]))
+        assert verification["ok"] is False
+>       assert any(f["predicate"] == "readonly_result_binding" and f["passed"] is False
+                   for step in verification["steps"] for f in step["found"])
+E       assert False
+E        +  where False = any(<generator object test_verify_detects_a_tampered_read_only_result.<locals>.<genexpr> at 0x00000171147A7220>)
+
+tests\test_repair_redteam.py:464: AssertionError
+_______ test_verify_of_a_committed_task_reports_verified_with_coverage ________
+
+rt = <definitio.runtime.Runtime object at 0x00000171147E4050>
+service = <definitio.agent.AgentService object at 0x00000171147E5D60>
+
+    def test_verify_of_a_committed_task_reports_verified_with_coverage(rt, service):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = run_verb(rt, "gis_buffer",
+                        {"input": d["id"], "target": "buf", "distance": 10, "unit": "m", "dissolve": False})
+        verification = service.verify_task(task)
+>       assert verification["status"] == "verified" and verification["ok"] is True
+E       AssertionError: assert ('complete' == 'verified'
+E         
+E         - verified
+E         + complete)
+
+tests\test_repair_redteam.py:473: AssertionError
+_______ test_publish_transport_failure_before_any_write_is_not_isolated _______
+
+rt = <definitio.runtime.Runtime object at 0x00000171147E4EC0>
+
+    def test_publish_transport_failure_before_any_write_is_not_isolated(rt):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        from definitio.model import GISFault
+    
+        def refuse(cfg, method, path, **kwargs):
+            raise GISFault("BACKEND_ERROR", "connection refused")
+    
+        cfg = {"sandbox": True, "allow_publish": True, "url": "http://127.0.0.1:1",
+               "workspace_prefix": "definitio_", "user": "synthetic", "password": "synthetic"}
+        with patch.object(completion, "licensed_dataset", return_value=(d, {"id": "synthetic_license"})), \
+                patch.object(completion, "config", return_value=cfg), \
+                patch.object(completion, "worker", return_value={"base64": ""}), \
+                patch.object(completion, "request", refuse), \
+                patch.object(completion.httpx, "Client", _StubClient):
+            task = rt.declare("publish preflight", [{"verb": "gis_publish_layer", "parameters": {
+                "dataset_ref": d["id"], "workspace": "definitio_redteam", "style": "polygon",
+                "purpose": "noncommercial"}}])
+            task = rt.execute(task["id"], task["plan_digest"], True)
+>       assert task["task_state"] == "FAILED"
+E       AssertionError: assert 'ISOLATED' == 'FAILED'
+E         
+E         - FAILED
+E         + ISOLATED
+
+tests\test_repair_redteam.py:541: AssertionError
+_____ test_a_publication_that_vanishes_is_rolled_back_and_can_be_retried ______
+
+rt = <definitio.runtime.Runtime object at 0x00000171133D9F40>
+
+    def test_a_publication_that_vanishes_is_rolled_back_and_can_be_retried(rt):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = rt.declare("export", [{"verb": "gis_buffer", "parameters": {
+            "input": d["id"], "target": "safe_buf", "distance": 10, "unit": "m", "dissolve": False}}],
+            exports=[{"step": 1, "name": "buf.geojson", "format": "geojson"}])
+        with patch.object(commit, "readback_file_artifact",
+                          return_value={"confirmed": False, "reason": "published_file_missing"}):
+            task = rt.execute(task["id"], task["plan_digest"], True)
+        assert task["task_state"] == "FAILED"
+>       assert rt.store.file_artifacts() == []
+E       AssertionError: assert [{'bytes': 56...act-v1', ...}] == []
+E         
+E         Left contains one more item: {'bytes': 5629, 'created_at': '2026-11-17T14:47:27.999596+00:00', 'dataset_id': 'ds_b94f140d43cc42c3', 'format': 'definitio-file-artifact-v1', ...}
+E         Use -v to get more diff
+
+tests\test_repair_redteam.py:558: AssertionError
+__________ test_a_corrupted_publication_is_not_silently_rolled_back ___________
+
+rt = <definitio.runtime.Runtime object at 0x00000171147E78F0>
+
+    def test_a_corrupted_publication_is_not_silently_rolled_back(rt):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = rt.declare("export", [{"verb": "gis_buffer", "parameters": {
+            "input": d["id"], "target": "safe_buf", "distance": 10, "unit": "m", "dissolve": False}}],
+            exports=[{"step": 1, "name": "buf.geojson", "format": "geojson"}])
+        with patch.object(commit, "readback_file_artifact",
+                          return_value={"confirmed": False, "reason": "published_bytes_mismatch"}):
+            task = rt.execute(task["id"], task["plan_digest"], True)
+        assert task["task_state"] == "FAILED"
+        assert task["error"]["code"] == "TARGET_STATE_UNKNOWN"
+        # Bytes that do not match the registration are evidence, not litter: keep both.
+        assert len(rt.store.file_artifacts()) == 1
+>       assert (rt.store.path.parent / "artifacts" / "buf.geojson").exists()
+E       AssertionError: assert False
+E        +  where False = exists()
+E        +    where exists = ((WindowsPath('C:/Users/RAHUYU/AppData/Local/Temp/pytest-of-rahuyu/pytest-337/test_a_corrupted_publication_i0') / 'artifacts') / 'buf.geojson').exists
+E        +      where WindowsPath('C:/Users/RAHUYU/AppData/Local/Temp/pytest-of-rahuyu/pytest-337/test_a_corrupted_publication_i0') = WindowsPath('C:/Users/RAHUYU/AppData/Local/Temp/pytest-of-rahuyu/pytest-337/test_a_corrupted_publication_i0/workspace.sqlite3').parent
+E        +        where WindowsPath('C:/Users/RAHUYU/AppData/Local/Temp/pytest-of-rahuyu/pytest-337/test_a_corrupted_publication_i0/workspace.sqlite3') = <definitio.store.Store object at 0x0000017114897230>.path
+E        +          where <definitio.store.Store object at 0x0000017114897230> = <definitio.runtime.Runtime object at 0x00000171147E78F0>.store
+
+tests\test_repair_redteam.py:580: AssertionError
+_______ test_file_artifact_confinement_rejects_escapes_by_resolved_path _______
+
+rt = <definitio.runtime.Runtime object at 0x00000171135DA540>
+
+    def test_file_artifact_confinement_rejects_escapes_by_resolved_path(rt):
+        from definitio import verifier
+    
+        task = export_task(rt)  # creates workspace/artifacts with one published file
+        assert task["task_state"] == "COMMITTED"
+        workspace = str(rt.store.path.parent)
+    
+        def finding_for(target):
+            ctx = verifier.context(
+                stage="verify", verb="task_commit", vid="", parameters={}, inputs=[], proposal=None,
+                output=None, store=rt.store, db=None, planned_inputs=[], write_scope={"file_artifacts": []},
+                actual_writes=[{"kind": "file", "target": target, "verb": "file_export"}],
+                authorization=None, workspace=workspace, file_artifact=None)
+            return verifier.file_artifact_confinement(ctx)
+    
+>       assert finding_for("buf.geojson")["passed"] is True
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_repair_redteam.py:718: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+target = 'buf.geojson'
+
+    def finding_for(target):
+        ctx = verifier.context(
+            stage="verify", verb="task_commit", vid="", parameters={}, inputs=[], proposal=None,
+            output=None, store=rt.store, db=None, planned_inputs=[], write_scope={"file_artifacts": []},
+            actual_writes=[{"kind": "file", "target": target, "verb": "file_export"}],
+            authorization=None, workspace=workspace, file_artifact=None)
+>       return verifier.file_artifact_confinement(ctx)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'definitio.verifier' has no attribute 'file_artifact_confinement'
+
+tests\test_repair_redteam.py:716: AttributeError
+______________ test_checked_in_handbook_matches_the_live_catalog ______________
+
+service = <definitio.agent.AgentService object at 0x0000017114BB4140>
+
+    def test_checked_in_handbook_matches_the_live_catalog(service):
+        """The only assertion that makes the manual '����': byte equality with a fresh render."""
+        assert HANDBOOK.exists(), "docs/HANDBOOK.md ȱʧ���� scripts/generate_handbook.py ����"
+>       assert HANDBOOK.read_text(encoding="utf-8") == render_markdown(build(service))
+E       AssertionError: assert '# Definitio ...s refused |\n' == '# Definitio ...s refused |\n'
+E         
+E         Skipping 51 identical leading characters in diff, use -v to show
+E         - v1`����ԴժҪ��`6e51c8dc3db13953461dd8dff5a6dd832994eab94305fa33e1d18b05d3a740bd`
+E         + v1`����ԴժҪ��`5a305bb91d1a66e450477e4adaed9ddc473a31c33e74af5c96e046aa02cfe62d`
+E           
+E           > ���ļ��� `scripts/generate_handbook.py` �ӻ�Ŀ¼���ɡ����ʡ������롢����disposition �ھ��䶯������������ɣ����� `tests/test_v05_handbook.py` ��Ư�Ʋ��Ի�ʧ�ܡ�
+E           ...
+E         
+E         ...Full output truncated (144 lines hidden), use '-vv' to show
+
+tests\test_v05_handbook.py:33: AssertionError
+_______________ test_cli_check_reads_out_from_the_live_catalog ________________
+
+    def test_cli_check_reads_out_from_the_live_catalog():
+        result = subprocess.run([sys.executable, "-X", "utf8", "scripts/generate_handbook.py", "--check"],
+                                cwd=ROOT, capture_output=True, text=True, encoding="utf-8")
+>       assert result.returncode == 0, result.stdout + result.stderr
+E       AssertionError: DRIFT: C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\docs\HANDBOOK.md ���Ŀ¼��һ�£�����������
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Users\\RAHUYU\\AppData\\Local\\Programs\\Python\\Python312\\python.exe', '-X', 'utf8', 'sc...HUYU\\WorkBuddy\\2026-11-09-10-00-10\\agent-native-gis\\08-runtime-v05-native-push\\docs\\HANDBOOK.md ���Ŀ¼��һ�£�����������\n').returncode
+
+tests\test_v05_handbook.py:68: AssertionError
+_____________________ test_no_seeded_violation_is_missed ______________________
+
+service = <definitio.agent.AgentService object at 0x0000017114BB4E60>
+
+    def test_no_seeded_violation_is_missed(service):
+        cases, failures = _load_selfcheck().collect(service)
+>       assert failures == [], f"�����©�죺{failures}"
+E       AssertionError: �����©�죺[{'case': 'handbook_matches_live_catalog', 'expected_ok': True, 'actual_ok': False, 'caught': False, 'detail': '�ֲ����Ŀ¼һ��'}]
+E       assert [{'case': 'ha...: False, ...}] == []
+E         
+E         Left contains one more item: {'case': 'handbook_matches_live_catalog', 'expected_ok': True, 'actual_ok': False, 'caught': False, ...}
+E         Use -v to get more diff
+
+tests\test_v05_selfcheck.py:34: AssertionError
+__________________ test_clean_samples_do_not_false_positive ___________________
+
+service = <definitio.agent.AgentService object at 0x00000171149E9FD0>
+
+    def test_clean_samples_do_not_false_positive(service):
+        cases, _ = _load_selfcheck().collect(service)
+        clean = [c for c in cases if c["expected_ok"] is True]
+>       assert clean and all(c["actual_ok"] is True for c in clean)
+E       AssertionError: assert ([{'case': 'clean_envelope_passes', 'expected_ok': True, 'actual_ok': True, 'caught': True, ...}, {'case': 'injected_re...'caught': True, ...}, {'case': 'zero_hits_is_stale', 'expected_ok': True, 'actual_ok': True, 'caught': True, ...}, ...] and False)
+E        +  where False = all(<generator object test_clean_samples_do_not_false_positive.<locals>.<genexpr> at 0x0000017114BFBB90>)
+
+tests\test_v05_selfcheck.py:50: AssertionError
+____________________ test_cli_selfcheck_exit_code_is_real _____________________
+
+    def test_cli_selfcheck_exit_code_is_real():
+        result = subprocess.run([sys.executable, "-X", "utf8", "scripts/consistency_selfcheck.py"],
+                                cwd=ROOT, capture_output=True, text=True, encoding="utf-8")
+>       assert result.returncode == 0, result.stdout[-2000:] + result.stderr[-2000:]
+E       AssertionError:     "case": "value_as_identity_is_refused",
+E               "expected_ok": true,
+E               "actual_ok": true,
+E               "caught": true,
+E               "detail": "ֵ�뷶Χ�������"
+E             },
+E             {
+E               "case": "recovery_registers_STALE",
+E               "expected_ok": true,
+E               "actual_ok": true,
+E               "caught": true,
+E               "detail": "RECOVERY �ѵǼ�"
+E             },
+E             {
+E               "case": "recovery_registers_AMBIGUOUS",
+E               "expected_ok": true,
+E               "actual_ok": true,
+E               "caught": true,
+E               "detail": "RECOVERY �ѵǼ�"
+E             },
+E             {
+E               "case": "clean_object_header_passes",
+E               "expected_ok": true,
+E               "actual_ok": true,
+E               "caught": true,
+E               "detail": "�Ĳ���ȫ"
+E             },
+E             {
+E               "case": "missing_crs_is_caught",
+E               "expected_ok": false,
+E               "actual_ok": false,
+E               "caught": true,
+E               "detail": "ȱ crs"
+E             },
+E             {
+E               "case": "missing_version_is_caught",
+E               "expected_ok": false,
+E               "actual_ok": false,
+E               "caught": true,
+E               "detail": "ȱ version"
+E             },
+E             {
+E               "case": "missing_fields_is_caught",
+E               "expected_ok": false,
+E               "actual_ok": false,
+E               "caught": true,
+E               "detail": "ȱ fields"
+E             },
+E             {
+E               "case": "missing_extent_is_caught",
+E               "expected_ok": false,
+E               "actual_ok": false,
+E               "caught": true,
+E               "detail": "ȱ extent"
+E             },
+E             {
+E               "case": "handbook_matches_live_catalog",
+E               "expected_ok": true,
+E               "actual_ok": false,
+E               "caught": false,
+E               "detail": "�ֲ����Ŀ¼һ��"
+E             },
+E             {
+E               "case": "handbook_missing_a_verb_is_caught",
+E               "expected_ok": false,
+E               "actual_ok": false,
+E               "caught": true,
+E               "detail": "��һ������"
+E             }
+E           ],
+E           "case_count": 21,
+E           "violations_detected": 8,
+E           "clean_passed": 12,
+E           "failures": [
+E             {
+E               "case": "handbook_matches_live_catalog",
+E               "expected_ok": true,
+E               "actual_ok": false,
+E               "caught": false,
+E               "detail": "�ֲ����Ŀ¼һ��"
+E             }
+E           ],
+E           "ok": false,
+E           "certification": "NOT_CERTIFIED",
+E           "dispositions_known": [
+E             "delivered_verified",
+E             "delivered_unverified",
+E             "not_delivered"
+E           ]
+E         }
+E         
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Users\\RAHUYU\\AppData\\Local\\Programs\\Python\\Python312\\python.exe', '-X', 'utf8', 'sc...sitions_known": [\n    "delivered_verified",\n    "delivered_unverified",\n    "not_delivered"\n  ]\n}\n\n', stderr='').returncode
+
+tests\test_v05_selfcheck.py:63: AssertionError
+============================== warnings summary ===============================
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_mcp.py::test_cold_start_survives_mcp_host_disconnect - McpE...
+FAILED tests/test_repair_redteam.py::test_buffer_rejects_a_result_at_the_wrong_position
+FAILED tests/test_repair_redteam.py::test_buffer_rejects_an_unbuffered_identity_result
+FAILED tests/test_repair_redteam.py::test_buffer_rejects_a_wrong_distance_multiple
+FAILED tests/test_repair_redteam.py::test_clip_rejects_a_result_outside_the_mask
+FAILED tests/test_repair_redteam.py::test_clip_rejects_a_result_that_lost_area
+FAILED tests/test_repair_redteam.py::test_overlay_difference_that_keeps_the_subtracted_region_is_rejected
+FAILED tests/test_repair_redteam.py::test_join_rejects_a_wrong_joined_attribute
+FAILED tests/test_repair_redteam.py::test_join_rejects_a_swapped_right_record
+FAILED tests/test_repair_redteam.py::test_the_reservation_counts_the_file_write_too
+FAILED tests/test_repair_redteam.py::test_replay_reports_a_missing_file_instead_of_the_old_receipt
+FAILED tests/test_repair_redteam.py::test_verify_reports_a_missing_file_as_not_ok
+FAILED tests/test_repair_redteam.py::test_verify_reports_a_deleted_output_dataset_as_not_ok
+FAILED tests/test_repair_redteam.py::test_verify_of_a_failed_task_is_not_ok
+FAILED tests/test_repair_redteam.py::test_verify_detects_a_tampered_read_only_result
+FAILED tests/test_repair_redteam.py::test_verify_of_a_committed_task_reports_verified_with_coverage
+FAILED tests/test_repair_redteam.py::test_publish_transport_failure_before_any_write_is_not_isolated
+FAILED tests/test_repair_redteam.py::test_a_publication_that_vanishes_is_rolled_back_and_can_be_retried
+FAILED tests/test_repair_redteam.py::test_a_corrupted_publication_is_not_silently_rolled_back
+FAILED tests/test_repair_redteam.py::test_file_artifact_confinement_rejects_escapes_by_resolved_path
+FAILED tests/test_v05_handbook.py::test_checked_in_handbook_matches_the_live_catalog
+FAILED tests/test_v05_handbook.py::test_cli_check_reads_out_from_the_live_catalog
+FAILED tests/test_v05_selfcheck.py::test_no_seeded_violation_is_missed - Asse...
+FAILED tests/test_v05_selfcheck.py::test_clean_samples_do_not_false_positive
+FAILED tests/test_v05_selfcheck.py::test_cli_selfcheck_exit_code_is_real - As...
+25 failed, 419 passed, 1 warning in 304.75s (0:05:04)

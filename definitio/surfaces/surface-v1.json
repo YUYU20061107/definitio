@@ -548,6 +548,8 @@
       "target_prefix": "target_prefix",
       "verbs": "verbs",
       "max_writes": "max_writes",
+      "capabilities": "capabilities",
+      "max_file_exports": "max_file_exports",
       "ttl_seconds": "ttl_seconds",
       "confirm": "confirm",
       "request_id": "request_id"

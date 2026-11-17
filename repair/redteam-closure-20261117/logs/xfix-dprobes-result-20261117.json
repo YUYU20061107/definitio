@@ -1,0 +1,23 @@
+{
+  "probe_sha256": "56ffb951b27f46f302d5245d5e66e05ed2da0a2ccad510d3b8d4a9377592ceab",
+  "tree": "C:\\Users\\RAHUYU\\WorkBuddy\\2026-11-09-10-00-10\\agent-native-gis\\08-runtime-v05-native-push",
+  "defect_assertions": {
+    "buffer_wrong_geometry": false,
+    "clip_wrong_geometry": false,
+    "grant_export": false,
+    "replay_missing_file": false,
+    "artifact_readback_failure": false,
+    "failed_task_verify": false,
+    "readonly_verify": false,
+    "multipoint_buffer": false,
+    "clip_duplicate_properties": false,
+    "empty_reproject": false,
+    "join_wrong_attributes": false,
+    "hillshade_dark_slope": false,
+    "external_publish_invalid_json": false
+  },
+  "still_reproducing": [],
+  "count": 0,
+  "total": 13,
+  "case_errors": {}
+}

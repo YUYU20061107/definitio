@@ -1,0 +1,97 @@
+﻿FFF......FF...FFF.....F....FFFFFF.FFF.........F                          [100%]
+================================== FAILURES ===================================
+E   AssertionError: assert 'buffer_positive_containment' in ('buffer_offset_distance', 'buffer_same_kernel_equivalence', 'buffer_contains_source', 'buffer_area_upper_bound')
+     +  where 'buffer_positive_containment' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T14:24:38.650820+00:00', ...})
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:98: AssertionError: assert 'buffer_positive_containment' in ('buffer_offset_distance', 'buffer_same_kernel_equivalence', 'buffer_contains_source', 'buffer_area_upper_bound')
+E   AssertionError: assert 'buffer_positive_expansion' in ('buffer_offset_distance', 'buffer_same_kernel_equivalence', 'buffer_contains_source')
+     +  where 'buffer_positive_expansion' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T14:24:39.114986+00:00', ...})
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:110: AssertionError: assert 'buffer_positive_expansion' in ('buffer_offset_distance', 'buffer_same_kernel_equivalence', 'buffer_contains_source')
+E   AssertionError: assert 'buffer_same_kernel_recompute' in ('buffer_area_upper_bound', 'buffer_offset_distance', 'buffer_same_kernel_equivalence')
+     +  where 'buffer_same_kernel_recompute' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T14:24:39.691436+00:00', ...})
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:121: AssertionError: assert 'buffer_same_kernel_recompute' in ('buffer_area_upper_bound', 'buffer_offset_distance', 'buffer_same_kernel_equivalence')
+E   AssertionError: assert 'clip_completeness' in ('clip_geometry_index_aligned', 'clip_output_within_mask', 'subset_within_input')
+     +  where 'clip_completeness' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T14:24:43.326526+00:00', ...})
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:185: AssertionError: assert 'clip_completeness' in ('clip_geometry_index_aligned', 'clip_output_within_mask', 'subset_within_input')
+E   AssertionError: assert 'clip_completeness' == 'clip_geometry_index_aligned'
+      
+      - clip_geometry_index_aligned
+      + clip_completeness
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:196: AssertionError: assert 'clip_completeness' == 'clip_geometry_index_aligned'
+E   AssertionError: assert 'clip_completeness' in ('clip_output_outside_subtracted_mask', 'clip_geometry_index_aligned')
+     +  where 'clip_completeness' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T14:24:46.213220+00:00', ...})
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:232: AssertionError: assert 'clip_completeness' in ('clip_output_outside_subtracted_mask', 'clip_geometry_index_aligned')
+E   AssertionError: assert 'join_right_a...butes_binding' == 'join_record_correspondence'
+      
+      - join_record_correspondence
+      + join_right_attributes_binding
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:253: AssertionError: assert 'join_right_a...butes_binding' == 'join_record_correspondence'
+E   AssertionError: assert 'join_right_a...butes_binding' == 'join_record_correspondence'
+      
+      - join_record_correspondence
+      + join_right_attributes_binding
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:266: AssertionError: assert 'join_right_a...butes_binding' == 'join_record_correspondence'
+E   assert (True is False)
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:357: assert (True is False)
+E   AssertionError: assert '���ύ�ļ�����ĵ�ǰ״̬' in '���ύ����ĳ�ŵ����ʵʱ����δȷ�ϣ���ֹ����ʷ��ִ���ʵʱ״̬��Ҳ�����·���'
+     +  where '���ύ����ĳ�ŵ����ʵʱ����δȷ�ϣ���ֹ����ʷ��ִ���ʵʱ״̬��Ҳ�����·���' = str(GISFault('���ύ����ĳ�ŵ����ʵʱ����δȷ�ϣ���ֹ����ʷ��ִ���ʵʱ״̬��Ҳ�����·���'))
+     +    where GISFault('���ύ����ĳ�ŵ����ʵʱ����δȷ�ϣ���ֹ����ʷ��ִ���ʵʱ״̬��Ҳ�����·���') = <ExceptionInfo GISFault('���ύ����ĳ�ŵ����ʵʱ����δȷ�ϣ���ֹ����ʷ��ִ���ʵʱ״̬��Ҳ�����·���') tblen=3>.value
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:401: AssertionError: assert '���ύ�ļ�����ĵ�ǰ״̬' in '���ύ����ĳ�ŵ����ʵʱ����δȷ�ϣ���ֹ����ʷ��ִ���ʵʱ״̬��Ҳ�����·���'
+E   assert False
+     +  where False = any(<generator object test_verify_reports_a_missing_file_as_not_ok.<locals>.<genexpr> at 0x0000021FBD9E4820>)
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:410: assert False
+E   assert False
+     +  where False = any(<generator object test_verify_reports_a_deleted_output_dataset_as_not_ok.<locals>.<genexpr> at 0x0000021FBD9E51C0>)
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:426: assert False
+E   AssertionError: assert 'incomplete' == 'task_not_committed'
+      
+      - task_not_committed
+      + incomplete
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:445: AssertionError: assert 'incomplete' == 'task_not_committed'
+E   assert False
+     +  where False = any(<generator object test_verify_detects_a_tampered_read_only_result.<locals>.<genexpr> at 0x0000021FBD9E6420>)
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:464: assert False
+E   AssertionError: assert ('complete' == 'verified'
+      
+      - verified
+      + complete)
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:473: AssertionError: assert ('complete' == 'verified'
+E   AssertionError: assert 'ISOLATED' == 'FAILED'
+      
+      - FAILED
+      + ISOLATED
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:541: AssertionError: assert 'ISOLATED' == 'FAILED'
+E   AssertionError: assert [{'bytes': 56...act-v1', ...}] == []
+      
+      Left contains one more item: {'bytes': 5629, 'created_at': '2026-11-17T14:24:51.778623+00:00', 'dataset_id': 'ds_9a5678f1d09947fe', 'format': 'definitio-file-artifact-v1', ...}
+      Use -v to get more diff
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:558: AssertionError: assert [{'bytes': 56...act-v1', ...}] == []
+E   AssertionError: assert False
+     +  where False = exists()
+     +    where exists = ((WindowsPath('C:/Users/RAHUYU/AppData/Local/Temp/pytest-of-rahuyu/pytest-331/test_a_corrupted_publication_i0') / 'artifacts') / 'buf.geojson').exists
+     +      where WindowsPath('C:/Users/RAHUYU/AppData/Local/Temp/pytest-of-rahuyu/pytest-331/test_a_corrupted_publication_i0') = WindowsPath('C:/Users/RAHUYU/AppData/Local/Temp/pytest-of-rahuyu/pytest-331/test_a_corrupted_publication_i0/workspace.sqlite3').parent
+     +        where WindowsPath('C:/Users/RAHUYU/AppData/Local/Temp/pytest-of-rahuyu/pytest-331/test_a_corrupted_publication_i0/workspace.sqlite3') = <definitio.store.Store object at 0x0000021FBD9836B0>.path
+     +          where <definitio.store.Store object at 0x0000021FBD9836B0> = <definitio.runtime.Runtime object at 0x0000021FBD9F4EC0>.store
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:580: AssertionError: assert False
+E   AttributeError: module 'definitio.verifier' has no attribute 'file_artifact_confinement'
+C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\tests\test_repair_redteam.py:716: AttributeError: module 'definitio.verifier' has no attribute 'file_artifact_confinement'
+=========================== short test summary info ===========================
+FAILED tests/test_repair_redteam.py::test_buffer_rejects_a_result_at_the_wrong_position
+FAILED tests/test_repair_redteam.py::test_buffer_rejects_an_unbuffered_identity_result
+FAILED tests/test_repair_redteam.py::test_buffer_rejects_a_wrong_distance_multiple
+FAILED tests/test_repair_redteam.py::test_clip_rejects_a_result_outside_the_mask
+FAILED tests/test_repair_redteam.py::test_clip_rejects_a_result_that_lost_area
+FAILED tests/test_repair_redteam.py::test_overlay_difference_that_keeps_the_subtracted_region_is_rejected
+FAILED tests/test_repair_redteam.py::test_join_rejects_a_wrong_joined_attribute
+FAILED tests/test_repair_redteam.py::test_join_rejects_a_swapped_right_record
+FAILED tests/test_repair_redteam.py::test_the_reservation_counts_the_file_write_too
+FAILED tests/test_repair_redteam.py::test_replay_reports_a_missing_file_instead_of_the_old_receipt
+FAILED tests/test_repair_redteam.py::test_verify_reports_a_missing_file_as_not_ok
+FAILED tests/test_repair_redteam.py::test_verify_reports_a_deleted_output_dataset_as_not_ok
+FAILED tests/test_repair_redteam.py::test_verify_of_a_failed_task_is_not_ok
+FAILED tests/test_repair_redteam.py::test_verify_detects_a_tampered_read_only_result
+FAILED tests/test_repair_redteam.py::test_verify_of_a_committed_task_reports_verified_with_coverage
+FAILED tests/test_repair_redteam.py::test_publish_transport_failure_before_any_write_is_not_isolated
+FAILED tests/test_repair_redteam.py::test_a_publication_that_vanishes_is_rolled_back_and_can_be_retried
+FAILED tests/test_repair_redteam.py::test_a_corrupted_publication_is_not_silently_rolled_back
+FAILED tests/test_repair_redteam.py::test_file_artifact_confinement_rejects_escapes_by_resolved_path
+19 failed, 28 passed in 16.76s

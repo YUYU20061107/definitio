@@ -1,0 +1,833 @@
+﻿........................................................................ [ 16%]
+................................................................F...FFFF [ 32%]
+FFFF.....F........................FFF......FF...FFF.....F....FFFFFF.FFF. [ 48%]
+........F............................................................... [ 64%]
+........................................................................ [ 81%]
+.............................................F...F................F.F.F. [ 97%]
+............                                                             [100%]
+================================== FAILURES ===================================
+____________ test_tile_binary_http_download_decode_and_expiration _____________
+
+tmp_path = WindowsPath('C:/Users/RAHUYU/xfix-run/basetemp/test_tile_binary_http_download0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000027EB294FEC0>
+
+    def test_tile_binary_http_download_decode_and_expiration(tmp_path, monkeypatch):
+        monkeypatch.setenv("DEFINITIO_BACKEND_CONFIG", str(ROOT / "data/backends.json"))
+        app = create_app(tmp_path, ui=False)
+        runtime = app.state.runtime
+        d = source(AgentService(runtime))
+        with TestClient(app) as client:
+            reply = client.post("/api/agent/call", json={"name": "gis_serve_vector_tile", "arguments": {"backend": "postgis", "table": d["id"], "z": 0, "x": 0, "y": 0, "geometry_column": "geometry", "attributes": ["key"]}}).json()
+>           result = value(AgentService(runtime), reply)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:131: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x0000027EB29F6150>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_0c8299197c60...8108d4395d831f3d076665b4e282cc685903924', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_0c8299197c60...8108d4395d831f3d076665b4e282cc685903924', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+______ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Things] _______
+
+service = <definitio.agent.AgentService object at 0x0000027EB29F6A20>
+entity = 'Things'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x0000027EB29F6A20>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_17f5c8f1c16c...e4eee8c1fa7178472cc6ad2d3ab05d71559bd29', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_17f5c8f1c16c...e4eee8c1fa7178472cc6ad2d3ab05d71559bd29', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_____ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Locations] _____
+
+service = <definitio.agent.AgentService object at 0x0000027EB1810A70>
+entity = 'Locations'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x0000027EB1810A70>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_31a24236c826...756700ca082ee1b042a8979ec4e97ae653580ef', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_31a24236c826...756700ca082ee1b042a8979ec4e97ae653580ef', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_ test_actual_sta_all_entity_sets_and_exact_odata_downpush[HistoricalLocations] _
+
+service = <definitio.agent.AgentService object at 0x0000027EB17E4FB0>
+entity = 'HistoricalLocations'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x0000027EB17E4FB0>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_759f1143daaa...5bb4e83e212d83f027eae11978248b6c0a3e465', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_759f1143daaa...5bb4e83e212d83f027eae11978248b6c0a3e465', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+____ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Datastreams] ____
+
+service = <definitio.agent.AgentService object at 0x0000027EB17E74A0>
+entity = 'Datastreams'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x0000027EB17E74A0>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_0acfb0966351...c444a8da834502f649ee03f5d5b86a9462a01f6', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_0acfb0966351...c444a8da834502f649ee03f5d5b86a9462a01f6', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+______ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Sensors] ______
+
+service = <definitio.agent.AgentService object at 0x0000027EB1540DA0>
+entity = 'Sensors'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x0000027EB1540DA0>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_bc60487a556a...e05739317cf4f0c275eeb410ed49b5cc2915498', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_bc60487a556a...e05739317cf4f0c275eeb410ed49b5cc2915498', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_ test_actual_sta_all_entity_sets_and_exact_odata_downpush[ObservedProperties] _
+
+service = <definitio.agent.AgentService object at 0x0000027EB1812810>
+entity = 'ObservedProperties'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x0000027EB1812810>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_5597fd55115b...50236a1a13627c6160a542c3dc81d5df5220f27', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_5597fd55115b...50236a1a13627c6160a542c3dc81d5df5220f27', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+___ test_actual_sta_all_entity_sets_and_exact_odata_downpush[Observations] ____
+
+service = <definitio.agent.AgentService object at 0x0000027EB1770D40>
+entity = 'Observations'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x0000027EB1770D40>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_1d0477b02efe...46c93c64b6bd5ba91ef65b43456f8e5d1155092', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_1d0477b02efe...46c93c64b6bd5ba91ef65b43456f8e5d1155092', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_ test_actual_sta_all_entity_sets_and_exact_odata_downpush[FeaturesOfInterest] _
+
+service = <definitio.agent.AgentService object at 0x0000027EB29BC230>
+entity = 'FeaturesOfInterest'
+
+    @pytest.mark.parametrize("entity", ENTITIES)
+    def test_actual_sta_all_entity_sets_and_exact_odata_downpush(service, entity):
+>       result = value(service, service.call("gis_query_observations", {"backend": "istsos", "entity": entity, "top": 1, "skip": 0, "count": True}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x0000027EB29BC230>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_c0554a58592f...1f2a27960394413ca5e905422bbbe6b3e02d853', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_c0554a58592f...1f2a27960394413ca5e905422bbbe6b3e02d853', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+__________ test_actual_services_filter_and_unknown_service_rejection __________
+
+service = <definitio.agent.AgentService object at 0x0000027EB15B0140>
+
+    def test_actual_services_filter_and_unknown_service_rejection(service):
+>       result = value(service, service.call("gis_list_services", {"backend": "geoserver", "service": "WMS"}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_native_completion.py:178: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = <definitio.agent.AgentService object at 0x0000027EB15B0140>
+reply = {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_b8faadb7ccc4...75f74d2ec62b143e43e7be714b9eee98bc2c5bb', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+
+    def value(s, reply):
+>       assert reply["ok"], reply
+E       AssertionError: {'ok': False, 'status': 'error', 'interface_version': 'definitio-agent-v1', 'data': {'task': {'id': 'task_b8faadb7ccc4...75f74d2ec62b143e43e7be714b9eee98bc2c5bb', ...}, 'replayed': False, 'outputs': [], 'unavailable_outputs': [], ...}, ...}
+E       assert False
+
+tests\test_native_completion.py:34: AssertionError
+_____________ test_buffer_rejects_a_result_at_the_wrong_position ______________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB29FECF0>
+
+    def test_buffer_rejects_a_result_at_the_wrong_position(rt):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = run_corrupted(rt, "gis_buffer",
+                             {"input": d["id"], "target": "buf", "distance": 10, "unit": "m", "dissolve": False},
+                             set_geometry())
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) in ("buffer_offset_distance", "buffer_same_kernel_equivalence",
+                                      "buffer_contains_source", "buffer_area_upper_bound")
+E       AssertionError: assert 'buffer_positive_containment' in ('buffer_offset_distance', 'buffer_same_kernel_equivalence', 'buffer_contains_source', 'buffer_area_upper_bound')
+E        +  where 'buffer_positive_containment' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T15:21:00.381671+00:00', ...})
+
+tests\test_repair_redteam.py:98: AssertionError
+______________ test_buffer_rejects_an_unbuffered_identity_result ______________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB29FFEC0>
+
+    def test_buffer_rejects_an_unbuffered_identity_result(rt):
+        d = import_fc(rt, "src2", [feature(box(100, 100, 110, 110))])
+        task = run_corrupted(rt, "gis_buffer",
+                             {"input": d["id"], "target": "buf2", "distance": 10, "unit": "m", "dissolve": False},
+                             lambda p: p["geojson"]["features"][0].__setitem__(
+                                 "geometry", mapping(box(100, 100, 110, 110))))
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) in ("buffer_offset_distance", "buffer_same_kernel_equivalence",
+                                      "buffer_contains_source")
+E       AssertionError: assert 'buffer_positive_expansion' in ('buffer_offset_distance', 'buffer_same_kernel_equivalence', 'buffer_contains_source')
+E        +  where 'buffer_positive_expansion' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T15:21:00.651746+00:00', ...})
+
+tests\test_repair_redteam.py:110: AssertionError
+________________ test_buffer_rejects_a_wrong_distance_multiple ________________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB17E71D0>
+
+    def test_buffer_rejects_a_wrong_distance_multiple(rt):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = run_corrupted(rt, "gis_buffer",
+                             {"input": d["id"], "target": "buf", "distance": 10, "unit": "m", "dissolve": False},
+                             lambda p: p["geojson"]["features"][0].__setitem__(
+                                 "geometry", mapping(box(-10, -10, 20, 20))))
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) in ("buffer_area_upper_bound", "buffer_offset_distance",
+                                      "buffer_same_kernel_equivalence")
+E       AssertionError: assert 'buffer_same_kernel_recompute' in ('buffer_area_upper_bound', 'buffer_offset_distance', 'buffer_same_kernel_equivalence')
+E        +  where 'buffer_same_kernel_recompute' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T15:21:00.914360+00:00', ...})
+
+tests\test_repair_redteam.py:121: AssertionError
+_________________ test_clip_rejects_a_result_outside_the_mask _________________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB297A720>
+
+    def test_clip_rejects_a_result_outside_the_mask(rt):
+        d, mask = clip_setup(rt)
+        task = run_corrupted(rt, "gis_clip",
+                             {"input": d["id"], "clip_by": mask["id"], "target": "clipped"},
+                             lambda p: p["geojson"]["features"][0].__setitem__(
+                                 "geometry", mapping(box(8, 0, 10, 10))))
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) in ("clip_geometry_index_aligned", "clip_output_within_mask",
+                                      "subset_within_input")
+E       AssertionError: assert 'clip_completeness' in ('clip_geometry_index_aligned', 'clip_output_within_mask', 'subset_within_input')
+E        +  where 'clip_completeness' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T15:21:02.628535+00:00', ...})
+
+tests\test_repair_redteam.py:185: AssertionError
+__________________ test_clip_rejects_a_result_that_lost_area __________________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB17715B0>
+
+    def test_clip_rejects_a_result_that_lost_area(rt):
+        d, mask = clip_setup(rt)
+        task = run_corrupted(rt, "gis_clip",
+                             {"input": d["id"], "clip_by": mask["id"], "target": "clipped"},
+                             lambda p: p["geojson"]["features"][0].__setitem__(
+                                 "geometry", mapping(box(0, 0, 0.5, 2))))
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) == "clip_geometry_index_aligned"
+E       AssertionError: assert 'clip_completeness' == 'clip_geometry_index_aligned'
+E         
+E         - clip_geometry_index_aligned
+E         + clip_completeness
+
+tests\test_repair_redteam.py:196: AssertionError
+____ test_overlay_difference_that_keeps_the_subtracted_region_is_rejected _____
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB2978A70>
+
+    def test_overlay_difference_that_keeps_the_subtracted_region_is_rejected(rt):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        other = import_fc(rt, "other", [feature(box(0, 0, 5, 10), value=7)])
+        task = run_corrupted(rt, "gis_overlay",
+                             {"input": d["id"], "overlay": other["id"], "target": "ov",
+                              "operation": "difference"},
+                             lambda p: p["geojson"]["features"][0].__setitem__(
+                                 "geometry", mapping(box(0, 0, 5, 10))))
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) in ("clip_output_outside_subtracted_mask", "clip_geometry_index_aligned")
+E       AssertionError: assert 'clip_completeness' in ('clip_output_outside_subtracted_mask', 'clip_geometry_index_aligned')
+E        +  where 'clip_completeness' = failed_check({'actual_writes': [], 'certification': 'NOT_CERTIFIED', 'commit_state': 'pending_confirmation', 'created_at': '2026-11-17T15:21:03.969219+00:00', ...})
+
+tests\test_repair_redteam.py:232: AssertionError
+_________________ test_join_rejects_a_wrong_joined_attribute __________________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB29EF860>
+
+    def test_join_rejects_a_wrong_joined_attribute(rt):
+        left, right = join_setup(rt)
+        def mutate(proposal):
+            proposal["geojson"]["features"][0]["properties"]["zone"] = "WRONG_ZONE"
+        task = run_corrupted(rt, "gis_spatial_join",
+                             {"input": left["id"], "join": right["id"], "target": "joined",
+                              "predicate": "intersects", "summary": "first"}, mutate)
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) == "join_record_correspondence"
+E       AssertionError: assert 'join_right_a...butes_binding' == 'join_record_correspondence'
+E         
+E         - join_record_correspondence
+E         + join_right_attributes_binding
+
+tests\test_repair_redteam.py:253: AssertionError
+__________________ test_join_rejects_a_swapped_right_record ___________________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB29EDAF0>
+
+    def test_join_rejects_a_swapped_right_record(rt):
+        left = import_fc(rt, "left", [feature(box(0, 0, 10, 10), value=7)])
+        right = import_fc(rt, "zones", [feature(box(5, 5, 15, 15), zone="A"),
+                                        feature(box(6, 6, 16, 16), zone="B")])
+        def mutate(proposal):
+            proposal["geojson"]["features"][0]["properties"]["zone"] = "B"
+        task = run_corrupted(rt, "gis_spatial_join",
+                             {"input": left["id"], "join": right["id"], "target": "joined",
+                              "predicate": "intersects", "summary": "all"}, mutate)
+        assert task["task_state"] == "FAILED"
+>       assert failed_check(task) == "join_record_correspondence"
+E       AssertionError: assert 'join_right_a...butes_binding' == 'join_record_correspondence'
+E         
+E         - join_record_correspondence
+E         + join_right_attributes_binding
+
+tests\test_repair_redteam.py:266: AssertionError
+_______________ test_the_reservation_counts_the_file_write_too ________________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB29ED640>
+service = <definitio.agent.AgentService object at 0x0000027EB29ED340>
+
+    def test_the_reservation_counts_the_file_write_too(rt, service):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = rt.declare("counting", [{"verb": "gis_buffer", "parameters": {
+            "input": d["id"], "target": "safe_buf", "distance": 10, "unit": "m", "dissolve": False}}],
+            exports=[{"step": 1, "name": "safe_buf.geojson", "format": "geojson"}])
+        grant_id = grant(service, ["gis_buffer", "file_export"], maximum=1)
+        reply = service.call("task_execute", {"task_id": task["id"], "plan_digest": task["plan_digest"],
+                                              "authorization_id": grant_id}, session=SESSION)
+>       assert reply["ok"] is False and reply["error"]["code"] == "AUTHORIZATION_EXHAUSTED"
+E       assert (True is False)
+
+tests\test_repair_redteam.py:357: AssertionError
+________ test_replay_reports_a_missing_file_instead_of_the_old_receipt ________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB29FEB40>
+
+    def test_replay_reports_a_missing_file_instead_of_the_old_receipt(rt):
+        task = export_task(rt)
+        assert task["task_state"] == "COMMITTED"
+        (rt.store.path.parent / "artifacts" / "buf.geojson").unlink()
+        with pytest.raises(Exception) as caught:
+            rt.execute(task["id"], task["plan_digest"], True)
+        assert getattr(caught.value, "code", "") == "TARGET_STATE_UNKNOWN"
+>       assert "已提交文件产物的当前状态" in str(caught.value)
+E       AssertionError: assert '已提交文件产物的当前状态' in '已提交任务的承诺产物实时读回未确认；禁止用历史回执填充实时状态，也不重新发布'
+E        +  where '已提交任务的承诺产物实时读回未确认；禁止用历史回执填充实时状态，也不重新发布' = str(GISFault('已提交任务的承诺产物实时读回未确认；禁止用历史回执填充实时状态，也不重新发布'))
+E        +    where GISFault('已提交任务的承诺产物实时读回未确认；禁止用历史回执填充实时状态，也不重新发布') = <ExceptionInfo GISFault('已提交任务的承诺产物实时读回未确认；禁止用历史回执填充实时状态，也不重新发布') tblen=3>.value
+
+tests\test_repair_redteam.py:401: AssertionError
+________________ test_verify_reports_a_missing_file_as_not_ok _________________
+
+service = <definitio.agent.AgentService object at 0x0000027EB17E4DD0>
+
+    def test_verify_reports_a_missing_file_as_not_ok(service):
+        task = export_task(service.runtime)
+        (service.runtime.store.path.parent / "artifacts" / "buf.geojson").unlink()
+        reply = service.call("task_get", {"task_id": task["id"], "verify": True})
+        verification = reply["data"]["verification"]
+        assert verification["ok"] is False
+>       assert any(f["predicate"] == "artifact_state_binding" and f["passed"] is False
+                   for step in verification["steps"] for f in step["found"])
+E       assert False
+E        +  where False = any(<generator object test_verify_reports_a_missing_file_as_not_ok.<locals>.<genexpr> at 0x0000027EFFF68900>)
+
+tests\test_repair_redteam.py:410: AssertionError
+___________ test_verify_reports_a_deleted_output_dataset_as_not_ok ____________
+
+service = <definitio.agent.AgentService object at 0x0000027EB297B680>
+
+    def test_verify_reports_a_deleted_output_dataset_as_not_ok(service):
+        rt = service.runtime
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = run_verb(rt, "gis_buffer",
+                        {"input": d["id"], "target": "buf", "distance": 10, "unit": "m", "dissolve": False})
+        assert task["task_state"] == "COMMITTED"
+        with sqlite3.connect(rt.store.path) as db:
+            db.execute("DELETE FROM datasets WHERE id=?", (task["output_refs"][0],))
+            db.commit()
+        reply = service.call("task_get", {"task_id": task["id"], "verify": True})
+        verification = reply["data"]["verification"]
+        assert verification["ok"] is False
+>       assert any(f["predicate"] == "output_state_binding" and f["passed"] is False
+                   for step in verification["steps"] for f in step["found"])
+E       assert False
+E        +  where False = any(<generator object test_verify_reports_a_deleted_output_dataset_as_not_ok.<locals>.<genexpr> at 0x0000027EB294B140>)
+
+tests\test_repair_redteam.py:426: AssertionError
+___________________ test_verify_of_a_failed_task_is_not_ok ____________________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB29EC4A0>
+service = <definitio.agent.AgentService object at 0x0000027EB29EFB90>
+
+    def test_verify_of_a_failed_task_is_not_ok(rt, service):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = rt.declare("boom", [{"verb": "gis_buffer", "parameters": {
+            "input": d["id"], "target": "buf", "distance": 10, "unit": "m", "dissolve": False}}])
+        def explode(name, p, inputs):
+            raise RuntimeError("injected computation failure")
+        with patch.object(runtime_module, "compute", explode):
+            task = rt.execute(task["id"], task["plan_digest"], True)
+        assert task["task_state"] == "FAILED"
+        verification = service.verify_task(task)
+        assert verification["ok"] is False
+>       assert verification["status"] == "task_not_committed"
+E       AssertionError: assert 'incomplete' == 'task_not_committed'
+E         
+E         - task_not_committed
+E         + incomplete
+
+tests\test_repair_redteam.py:445: AssertionError
+_______________ test_verify_detects_a_tampered_read_only_result _______________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB29FE3C0>
+service = <definitio.agent.AgentService object at 0x0000027EB29FDE50>
+
+    def test_verify_detects_a_tampered_read_only_result(rt, service):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = run_verb(rt, "gis_field_statistics", {
+            "dataset": d["id"], "fields": ["value"], "group_by": [], "statistics": ["sum"],
+            "output": "result", "null_policy": "exclude"})
+        assert task["task_state"] == "COMMITTED"
+        with sqlite3.connect(rt.store.path) as db:
+            row = db.execute("SELECT document FROM tasks WHERE id=?", (task["id"],)).fetchone()
+            document = json.loads(row[0])
+            document["steps"][0]["result"]["groups"][0]["fields"]["value"]["sum"] = 999999
+            db.execute("UPDATE tasks SET document=? WHERE id=?", (json.dumps(document), task["id"]))
+            db.commit()
+        verification = service.verify_task(rt.store.task(task["id"]))
+        assert verification["ok"] is False
+>       assert any(f["predicate"] == "readonly_result_binding" and f["passed"] is False
+                   for step in verification["steps"] for f in step["found"])
+E       assert False
+E        +  where False = any(<generator object test_verify_detects_a_tampered_read_only_result.<locals>.<genexpr> at 0x0000027EB13FA180>)
+
+tests\test_repair_redteam.py:464: AssertionError
+_______ test_verify_of_a_committed_task_reports_verified_with_coverage ________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB29807A0>
+service = <definitio.agent.AgentService object at 0x0000027EB2983560>
+
+    def test_verify_of_a_committed_task_reports_verified_with_coverage(rt, service):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = run_verb(rt, "gis_buffer",
+                        {"input": d["id"], "target": "buf", "distance": 10, "unit": "m", "dissolve": False})
+        verification = service.verify_task(task)
+>       assert verification["status"] == "verified" and verification["ok"] is True
+E       AssertionError: assert ('complete' == 'verified'
+E         
+E         - verified
+E         + complete)
+
+tests\test_repair_redteam.py:473: AssertionError
+_______ test_publish_transport_failure_before_any_write_is_not_isolated _______
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB2983500>
+
+    def test_publish_transport_failure_before_any_write_is_not_isolated(rt):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        from definitio.model import GISFault
+    
+        def refuse(cfg, method, path, **kwargs):
+            raise GISFault("BACKEND_ERROR", "connection refused")
+    
+        cfg = {"sandbox": True, "allow_publish": True, "url": "http://127.0.0.1:1",
+               "workspace_prefix": "definitio_", "user": "synthetic", "password": "synthetic"}
+        with patch.object(completion, "licensed_dataset", return_value=(d, {"id": "synthetic_license"})), \
+                patch.object(completion, "config", return_value=cfg), \
+                patch.object(completion, "worker", return_value={"base64": ""}), \
+                patch.object(completion, "request", refuse), \
+                patch.object(completion.httpx, "Client", _StubClient):
+            task = rt.declare("publish preflight", [{"verb": "gis_publish_layer", "parameters": {
+                "dataset_ref": d["id"], "workspace": "definitio_redteam", "style": "polygon",
+                "purpose": "noncommercial"}}])
+            task = rt.execute(task["id"], task["plan_digest"], True)
+>       assert task["task_state"] == "FAILED"
+E       AssertionError: assert 'ISOLATED' == 'FAILED'
+E         
+E         - FAILED
+E         + ISOLATED
+
+tests\test_repair_redteam.py:541: AssertionError
+_____ test_a_publication_that_vanishes_is_rolled_back_and_can_be_retried ______
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB297B350>
+
+    def test_a_publication_that_vanishes_is_rolled_back_and_can_be_retried(rt):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = rt.declare("export", [{"verb": "gis_buffer", "parameters": {
+            "input": d["id"], "target": "safe_buf", "distance": 10, "unit": "m", "dissolve": False}}],
+            exports=[{"step": 1, "name": "buf.geojson", "format": "geojson"}])
+        with patch.object(commit, "readback_file_artifact",
+                          return_value={"confirmed": False, "reason": "published_file_missing"}):
+            task = rt.execute(task["id"], task["plan_digest"], True)
+        assert task["task_state"] == "FAILED"
+>       assert rt.store.file_artifacts() == []
+E       AssertionError: assert [{'bytes': 55...act-v1', ...}] == []
+E         
+E         Left contains one more item: {'bytes': 5597, 'created_at': '2026-11-17T15:21:09.582928+00:00', 'dataset_id': 'ds_307438e57ca24857', 'format': 'definitio-file-artifact-v1', ...}
+E         Use -v to get more diff
+
+tests\test_repair_redteam.py:558: AssertionError
+__________ test_a_corrupted_publication_is_not_silently_rolled_back ___________
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB2980BC0>
+
+    def test_a_corrupted_publication_is_not_silently_rolled_back(rt):
+        d = import_fc(rt, "src", [feature(box(0, 0, 10, 10))])
+        task = rt.declare("export", [{"verb": "gis_buffer", "parameters": {
+            "input": d["id"], "target": "safe_buf", "distance": 10, "unit": "m", "dissolve": False}}],
+            exports=[{"step": 1, "name": "buf.geojson", "format": "geojson"}])
+        with patch.object(commit, "readback_file_artifact",
+                          return_value={"confirmed": False, "reason": "published_bytes_mismatch"}):
+            task = rt.execute(task["id"], task["plan_digest"], True)
+        assert task["task_state"] == "FAILED"
+        assert task["error"]["code"] == "TARGET_STATE_UNKNOWN"
+        # Bytes that do not match the registration are evidence, not litter: keep both.
+        assert len(rt.store.file_artifacts()) == 1
+>       assert (rt.store.path.parent / "artifacts" / "buf.geojson").exists()
+E       AssertionError: assert False
+E        +  where False = exists()
+E        +    where exists = ((WindowsPath('C:/Users/RAHUYU/xfix-run/basetemp/test_a_corrupted_publication_i0') / 'artifacts') / 'buf.geojson').exists
+E        +      where WindowsPath('C:/Users/RAHUYU/xfix-run/basetemp/test_a_corrupted_publication_i0') = WindowsPath('C:/Users/RAHUYU/xfix-run/basetemp/test_a_corrupted_publication_i0/workspace.sqlite3').parent
+E        +        where WindowsPath('C:/Users/RAHUYU/xfix-run/basetemp/test_a_corrupted_publication_i0/workspace.sqlite3') = <definitio.store.Store object at 0x0000027EB294D040>.path
+E        +          where <definitio.store.Store object at 0x0000027EB294D040> = <definitio.runtime.Runtime object at 0x0000027EB2980BC0>.store
+
+tests\test_repair_redteam.py:580: AssertionError
+_______ test_file_artifact_confinement_rejects_escapes_by_resolved_path _______
+
+rt = <definitio.runtime.Runtime object at 0x0000027EB29FCCE0>
+
+    def test_file_artifact_confinement_rejects_escapes_by_resolved_path(rt):
+        from definitio import verifier
+    
+        task = export_task(rt)  # creates workspace/artifacts with one published file
+        assert task["task_state"] == "COMMITTED"
+        workspace = str(rt.store.path.parent)
+    
+        def finding_for(target):
+            ctx = verifier.context(
+                stage="verify", verb="task_commit", vid="", parameters={}, inputs=[], proposal=None,
+                output=None, store=rt.store, db=None, planned_inputs=[], write_scope={"file_artifacts": []},
+                actual_writes=[{"kind": "file", "target": target, "verb": "file_export"}],
+                authorization=None, workspace=workspace, file_artifact=None)
+            return verifier.file_artifact_confinement(ctx)
+    
+>       assert finding_for("buf.geojson")["passed"] is True
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_repair_redteam.py:718: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+target = 'buf.geojson'
+
+    def finding_for(target):
+        ctx = verifier.context(
+            stage="verify", verb="task_commit", vid="", parameters={}, inputs=[], proposal=None,
+            output=None, store=rt.store, db=None, planned_inputs=[], write_scope={"file_artifacts": []},
+            actual_writes=[{"kind": "file", "target": target, "verb": "file_export"}],
+            authorization=None, workspace=workspace, file_artifact=None)
+>       return verifier.file_artifact_confinement(ctx)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'definitio.verifier' has no attribute 'file_artifact_confinement'
+
+tests\test_repair_redteam.py:716: AttributeError
+______________ test_checked_in_handbook_matches_the_live_catalog ______________
+
+service = <definitio.agent.AgentService object at 0x0000027EB2C39730>
+
+    def test_checked_in_handbook_matches_the_live_catalog(service):
+        """The only assertion that makes the manual '随行': byte equality with a fresh render."""
+        assert HANDBOOK.exists(), "docs/HANDBOOK.md 缺失；用 scripts/generate_handbook.py 生成"
+>       assert HANDBOOK.read_text(encoding="utf-8") == render_markdown(build(service))
+E       AssertionError: assert '# Definitio ...s refused |\n' == '# Definitio ...s refused |\n'
+E         
+E         Skipping 51 identical leading characters in diff, use -v to show
+E         - v1`　来源摘要：`6e51c8dc3db13953461dd8dff5a6dd832994eab94305fa33e1d18b05d3a740bd`
+E         + v1`　来源摘要：`5a305bb91d1a66e450477e4adaed9ddc473a31c33e74af5c96e046aa02cfe62d`
+E           
+E           > 本文件由 `scripts/generate_handbook.py` 从活目录生成。动词、错误码、规则、disposition 口径变动后必须重新生成，否则 `tests/test_v05_handbook.py` 的漂移测试会失败。
+E           ...
+E         
+E         ...Full output truncated (144 lines hidden), use '-vv' to show
+
+tests\test_v05_handbook.py:33: AssertionError
+_______________ test_cli_check_reads_out_from_the_live_catalog ________________
+
+    def test_cli_check_reads_out_from_the_live_catalog():
+        result = subprocess.run([sys.executable, "-X", "utf8", "scripts/generate_handbook.py", "--check"],
+                                cwd=ROOT, capture_output=True, text=True, encoding="utf-8")
+>       assert result.returncode == 0, result.stdout + result.stderr
+E       AssertionError: DRIFT: C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\docs\HANDBOOK.md 与活目录不一致，请重新生成
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Users\\RAHUYU\\AppData\\Local\\Programs\\Python\\Python312\\python.exe', '-X', 'utf8', 'sc...HUYU\\WorkBuddy\\2026-11-09-10-00-10\\agent-native-gis\\08-runtime-v05-native-push\\docs\\HANDBOOK.md 与活目录不一致，请重新生成\n').returncode
+
+tests\test_v05_handbook.py:68: AssertionError
+_____________________ test_no_seeded_violation_is_missed ______________________
+
+service = <definitio.agent.AgentService object at 0x0000027EB2CD3980>
+
+    def test_no_seeded_violation_is_missed(service):
+        cases, failures = _load_selfcheck().collect(service)
+>       assert failures == [], f"检查器漏检：{failures}"
+E       AssertionError: 检查器漏检：[{'case': 'handbook_matches_live_catalog', 'expected_ok': True, 'actual_ok': False, 'caught': False, 'detail': '手册与活目录一致'}]
+E       assert [{'case': 'ha...: False, ...}] == []
+E         
+E         Left contains one more item: {'case': 'handbook_matches_live_catalog', 'expected_ok': True, 'actual_ok': False, 'caught': False, ...}
+E         Use -v to get more diff
+
+tests\test_v05_selfcheck.py:34: AssertionError
+__________________ test_clean_samples_do_not_false_positive ___________________
+
+service = <definitio.agent.AgentService object at 0x0000027EB2C39B80>
+
+    def test_clean_samples_do_not_false_positive(service):
+        cases, _ = _load_selfcheck().collect(service)
+        clean = [c for c in cases if c["expected_ok"] is True]
+>       assert clean and all(c["actual_ok"] is True for c in clean)
+E       AssertionError: assert ([{'case': 'clean_envelope_passes', 'expected_ok': True, 'actual_ok': True, 'caught': True, ...}, {'case': 'injected_re...'caught': True, ...}, {'case': 'zero_hits_is_stale', 'expected_ok': True, 'actual_ok': True, 'caught': True, ...}, ...] and False)
+E        +  where False = all(<generator object test_clean_samples_do_not_false_positive.<locals>.<genexpr> at 0x0000027EB2CB0A00>)
+
+tests\test_v05_selfcheck.py:50: AssertionError
+____________________ test_cli_selfcheck_exit_code_is_real _____________________
+
+    def test_cli_selfcheck_exit_code_is_real():
+        result = subprocess.run([sys.executable, "-X", "utf8", "scripts/consistency_selfcheck.py"],
+                                cwd=ROOT, capture_output=True, text=True, encoding="utf-8")
+>       assert result.returncode == 0, result.stdout[-2000:] + result.stderr[-2000:]
+E       AssertionError:     "case": "value_as_identity_is_refused",
+E               "expected_ok": true,
+E               "actual_ok": true,
+E               "caught": true,
+E               "detail": "值与范围不作身份"
+E             },
+E             {
+E               "case": "recovery_registers_STALE",
+E               "expected_ok": true,
+E               "actual_ok": true,
+E               "caught": true,
+E               "detail": "RECOVERY 已登记"
+E             },
+E             {
+E               "case": "recovery_registers_AMBIGUOUS",
+E               "expected_ok": true,
+E               "actual_ok": true,
+E               "caught": true,
+E               "detail": "RECOVERY 已登记"
+E             },
+E             {
+E               "case": "clean_object_header_passes",
+E               "expected_ok": true,
+E               "actual_ok": true,
+E               "caught": true,
+E               "detail": "四槽齐全"
+E             },
+E             {
+E               "case": "missing_crs_is_caught",
+E               "expected_ok": false,
+E               "actual_ok": false,
+E               "caught": true,
+E               "detail": "缺 crs"
+E             },
+E             {
+E               "case": "missing_version_is_caught",
+E               "expected_ok": false,
+E               "actual_ok": false,
+E               "caught": true,
+E               "detail": "缺 version"
+E             },
+E             {
+E               "case": "missing_fields_is_caught",
+E               "expected_ok": false,
+E               "actual_ok": false,
+E               "caught": true,
+E               "detail": "缺 fields"
+E             },
+E             {
+E               "case": "missing_extent_is_caught",
+E               "expected_ok": false,
+E               "actual_ok": false,
+E               "caught": true,
+E               "detail": "缺 extent"
+E             },
+E             {
+E               "case": "handbook_matches_live_catalog",
+E               "expected_ok": true,
+E               "actual_ok": false,
+E               "caught": false,
+E               "detail": "手册与活目录一致"
+E             },
+E             {
+E               "case": "handbook_missing_a_verb_is_caught",
+E               "expected_ok": false,
+E               "actual_ok": false,
+E               "caught": true,
+E               "detail": "少一个动词"
+E             }
+E           ],
+E           "case_count": 21,
+E           "violations_detected": 8,
+E           "clean_passed": 12,
+E           "failures": [
+E             {
+E               "case": "handbook_matches_live_catalog",
+E               "expected_ok": true,
+E               "actual_ok": false,
+E               "caught": false,
+E               "detail": "手册与活目录一致"
+E             }
+E           ],
+E           "ok": false,
+E           "certification": "NOT_CERTIFIED",
+E           "dispositions_known": [
+E             "delivered_verified",
+E             "delivered_unverified",
+E             "not_delivered"
+E           ]
+E         }
+E         
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Users\\RAHUYU\\AppData\\Local\\Programs\\Python\\Python312\\python.exe', '-X', 'utf8', 'sc...sitions_known": [\n    "delivered_verified",\n    "delivered_unverified",\n    "not_delivered"\n  ]\n}\n\n', stderr='').returncode
+
+tests\test_v05_selfcheck.py:63: AssertionError
+============================== warnings summary ===============================
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\cacheprovider.py:469
+  C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\cacheprovider.py:469: PytestCacheWarning: could not create cache path C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\.pytest_cache\v\cache\nodeids: [WinError 5] 拒绝访问。: 'C:\\Users\\RAHUYU\\WorkBuddy\\2026-11-09-10-00-10\\agent-native-gis\\08-runtime-v05-native-push\\.pytest_cache\\v\\cache'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\cacheprovider.py:423
+  C:\Users\RAHUYU\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\cacheprovider.py:423: PytestCacheWarning: could not create cache path C:\Users\RAHUYU\WorkBuddy\2026-11-09-10-00-10\agent-native-gis\08-runtime-v05-native-push\.pytest_cache\v\cache\lastfailed: [WinError 5] 拒绝访问。: 'C:\\Users\\RAHUYU\\WorkBuddy\\2026-11-09-10-00-10\\agent-native-gis\\08-runtime-v05-native-push\\.pytest_cache\\v\\cache'
+    config.cache.set("cache/lastfailed", self.lastfailed)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_native_completion.py::test_tile_binary_http_download_decode_and_expiration
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Things]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Locations]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[HistoricalLocations]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Datastreams]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Sensors]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[ObservedProperties]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[Observations]
+FAILED tests/test_native_completion.py::test_actual_sta_all_entity_sets_and_exact_odata_downpush[FeaturesOfInterest]
+FAILED tests/test_native_completion.py::test_actual_services_filter_and_unknown_service_rejection
+FAILED tests/test_repair_redteam.py::test_buffer_rejects_a_result_at_the_wrong_position
+FAILED tests/test_repair_redteam.py::test_buffer_rejects_an_unbuffered_identity_result
+FAILED tests/test_repair_redteam.py::test_buffer_rejects_a_wrong_distance_multiple
+FAILED tests/test_repair_redteam.py::test_clip_rejects_a_result_outside_the_mask
+FAILED tests/test_repair_redteam.py::test_clip_rejects_a_result_that_lost_area
+FAILED tests/test_repair_redteam.py::test_overlay_difference_that_keeps_the_subtracted_region_is_rejected
+FAILED tests/test_repair_redteam.py::test_join_rejects_a_wrong_joined_attribute
+FAILED tests/test_repair_redteam.py::test_join_rejects_a_swapped_right_record
+FAILED tests/test_repair_redteam.py::test_the_reservation_counts_the_file_write_too
+FAILED tests/test_repair_redteam.py::test_replay_reports_a_missing_file_instead_of_the_old_receipt
+FAILED tests/test_repair_redteam.py::test_verify_reports_a_missing_file_as_not_ok
+FAILED tests/test_repair_redteam.py::test_verify_reports_a_deleted_output_dataset_as_not_ok
+FAILED tests/test_repair_redteam.py::test_verify_of_a_failed_task_is_not_ok
+FAILED tests/test_repair_redteam.py::test_verify_detects_a_tampered_read_only_result
+FAILED tests/test_repair_redteam.py::test_verify_of_a_committed_task_reports_verified_with_coverage
+FAILED tests/test_repair_redteam.py::test_publish_transport_failure_before_any_write_is_not_isolated
+FAILED tests/test_repair_redteam.py::test_a_publication_that_vanishes_is_rolled_back_and_can_be_retried
+FAILED tests/test_repair_redteam.py::test_a_corrupted_publication_is_not_silently_rolled_back
+FAILED tests/test_repair_redteam.py::test_file_artifact_confinement_rejects_escapes_by_resolved_path
+FAILED tests/test_v05_handbook.py::test_checked_in_handbook_matches_the_live_catalog
+FAILED tests/test_v05_handbook.py::test_cli_check_reads_out_from_the_live_catalog
+FAILED tests/test_v05_selfcheck.py::test_no_seeded_violation_is_missed - Asse...
+FAILED tests/test_v05_selfcheck.py::test_clean_samples_do_not_false_positive
+FAILED tests/test_v05_selfcheck.py::test_cli_selfcheck_exit_code_is_real - As...
+34 failed, 410 passed, 3 warnings in 216.31s (0:03:36)
